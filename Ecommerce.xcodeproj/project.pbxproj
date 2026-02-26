@@ -6,8 +6,14 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		A1F4C21D2F3A3CE300D73F86 /* Pacifico-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A1F4C21C2F3A3CE300D73F86 /* Pacifico-Regular.ttf */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		A1F4C20D2F3A3B7F00D73F86 /* Ecommerce.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Ecommerce.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A1F4C21C2F3A3CE300D73F86 /* Pacifico-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Pacifico-Regular.ttf"; sourceTree = "<group>"; };
+		A1F4C21E2F3A3CF700D73F86 /* Ecommerce-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "Ecommerce-Info.plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -32,7 +38,8 @@
 		A1F4C2042F3A3B7F00D73F86 = {
 			isa = PBXGroup;
 			children = (
-				A1F4C20F2F3A3B7F00D73F86 /* Ecommerce */,
+				A1F4C21E2F3A3CF700D73F86 /* Ecommerce-Info.plist */,
+				A1F4C21B2F3A3CC300D73F86 /* Font */,
 				A1F4C20E2F3A3B7F00D73F86 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -43,6 +50,15 @@
 				A1F4C20D2F3A3B7F00D73F86 /* Ecommerce.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		A1F4C21B2F3A3CC300D73F86 /* Font */ = {
+			isa = PBXGroup;
+			children = (
+				A1F4C20F2F3A3B7F00D73F86 /* Ecommerce */,
+				A1F4C21C2F3A3CE300D73F86 /* Pacifico-Regular.ttf */,
+			);
+			path = Font;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -109,6 +125,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A1F4C21D2F3A3CE300D73F86 /* Pacifico-Regular.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -256,6 +273,7 @@
 				DEVELOPMENT_TEAM = 9U4LQY5GNB;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Ecommerce-Info.plist";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -288,6 +306,7 @@
 				DEVELOPMENT_TEAM = 9U4LQY5GNB;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Ecommerce-Info.plist";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
