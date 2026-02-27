@@ -119,7 +119,9 @@ struct SignUpView: View {
                         
                         // Sign up button
                         Button {
-                            viewModel.signUp()
+                            Task{
+                               await viewModel.signUp()
+                            }
                         } label: {
                             if viewModel.isLoading {
                                 ProgressView()
@@ -133,6 +135,7 @@ struct SignUpView: View {
                                     .padding()
                             }
                         }
+                        .disabled(viewModel.isLoading)
                         .background(Color(red: 0.7, green: 0.2, blue: 0.2))
                         .cornerRadius(10)
                     }
@@ -144,7 +147,7 @@ struct SignUpView: View {
                 }
             }
             .navigationDestination(isPresented: $viewModel.isSignedUp) {
-                SignInView()
+                OTPView()
             }
         }
     }

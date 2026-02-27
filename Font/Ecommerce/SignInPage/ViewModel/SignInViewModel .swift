@@ -8,11 +8,13 @@
 import Foundation
 import SwiftUI
 import Combine
+import GoogleSignIn
+import GoogleSignInSwift
 
 @MainActor
 class SignInViewModel: ObservableObject {
     
-    // MARK: - Inputs
+    // Inputs
     @Published var email: String = ""
     @Published var password: String = ""
     
@@ -20,50 +22,137 @@ class SignInViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
     @Published var isLoggedIn: Bool = false
-    
     @Published var user: User?
     
-    // MARK: - Email Login
-    func signIn() {
+    // Email Login
+    func signIn() async {
         
         guard !email.isEmpty, !password.isEmpty else {
             errorMessage = "Email and Password are required."
             return
         }
         
+        errorMessage = nil
         isLoading = true
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-            self.user = User(
-                id: 1,
-                name: "Email User",
-                email: self.email,
-                token: "email_token"
+        do {
+            guard let url = URL(string: AppConfig.baseURL + EndPoints.signIn) else {
+                print("URL:", AppConfig.baseURL + EndPoints.signIn)
+                errorMessage = "Invalid URL"
+                isLoading = false
+                return
+            }
+            
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            
+            let body: [String: String] = [
+                "email": email,
+                "password": password
+            ]
+            
+            request.httpBody = try JSONSerialization.data(withJSONObject: body)
+            
+            let config = URLSessionConfiguration.default
+            config.httpCookieStorage = HTTPCookieStorage.shared
+            let session = URLSession(configuration: config)
+            
+            let (data, response) = try await session.data(for: request)
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                print("Not an HTTP response")
+                errorMessage = "Invalid response"
+                isLoading = false
+                return
+            }
+            print("Status Code:", httpResponse.statusCode)
+            print("Raw Response:", String(data: data, encoding: .utf8) ?? "No data")
+            
+            if httpResponse.statusCode == 200 {
+                let decoded = try JSONDecoder().decode(LoginResponse.self, from: data)
+                
+                if decoded.success {
+                    self.user = decoded.user
+                    print("Login success")
+                    print("isLoggedIn before:", self.isLoggedIn)
+                    self.isLoggedIn = true
+                    print("isLoggedIn after:", self.isLoggedIn)
+                } else {
+                    switch decoded.code {
+                           
+                       case "INVALID_CREDENTIALS":
+                           self.errorMessage = "Email or password is incorrect."
+                           
+                       case "USER_NOT_FOUND":
+                           self.errorMessage = "User does not exist."
+                           
+                       default:
+                           self.errorMessage = decoded.message
+                       }
+                }
+            } else {
+                errorMessage = "Login failed"
+            }
+            
+        } catch {
+            print("Decoding / API error:", error)
+            errorMessage = error.localizedDescription
+        }
+        
+        isLoading = false
+    }
+    
+    
+    // Google Login
+    func signInWithGoogle() async {
+        
+        guard let rootViewController = UIApplication.shared.connectedScenes
+            .compactMap({ $0 as? UIWindowScene })
+            .first?.windows.first?.rootViewController else {
+            return
+        }
+
+        do {
+            let result = try await GIDSignIn.sharedInstance.signIn(
+                withPresenting: rootViewController
             )
             
-            self.isLoading = false
-            self.isLoggedIn = true
+            guard let idToken = result.user.idToken?.tokenString else {
+                print("No ID Token found")
+                return
+            }
+            
+            await sendTokenToBackend(idToken: idToken)
+            
+        } catch {
+            print("Google Sign In Error:", error.localizedDescription)
         }
     }
     
-    // MARK: - Google Login
-    func signInWithGoogle() {
+    
+    func sendTokenToBackend(idToken: String) async {
         
-        isLoading = true
-        errorMessage = nil
+        guard let url = URL(string: "http://localhost:3000/auth/google") else { return }
         
-        // Simulate Google API Login
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let body = ["idToken": idToken]
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+        
+        do {
+            let (_, response) = try await URLSession.shared.data(for: request)
             
-            self.user = User(
-                id: 2,
-                name: "Google User",
-                email: "googleuser@gmail.com",
-                token: "google_token_123"
-            )
+            if let httpResponse = response as? HTTPURLResponse,
+               httpResponse.statusCode == 200 {
+                
+                self.isLoggedIn = true
+            }
             
-            self.isLoading = false
-            self.isLoggedIn = true
+        } catch {
+            print("Backend error:", error.localizedDescription)
         }
     }
 }

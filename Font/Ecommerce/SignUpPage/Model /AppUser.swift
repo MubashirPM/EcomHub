@@ -12,3 +12,9 @@ struct AppUser: Identifiable, Codable {
     let fullName: String
     let email: String
 }
+
+struct SignUpResponse: Codable {
+    let success: Bool
+    let message: String
+    let email: String?
+}

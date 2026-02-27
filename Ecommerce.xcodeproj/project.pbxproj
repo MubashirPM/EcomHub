@@ -7,10 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A1C843EA2F51F0F0005EB54C /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = A1C843E92F51F0F0005EB54C /* GoogleSignIn */; };
+		A1C843EC2F51F0F0005EB54C /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = A1C843EB2F51F0F0005EB54C /* GoogleSignInSwift */; };
 		A1F4C21D2F3A3CE300D73F86 /* Pacifico-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A1F4C21C2F3A3CE300D73F86 /* Pacifico-Regular.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		A1C843E72F51EF89005EB54C /* client_921930640335-5e1p6hc8gq4c30tlm1fq1sfnvbnv12pc.apps.googleusercontent.com.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "client_921930640335-5e1p6hc8gq4c30tlm1fq1sfnvbnv12pc.apps.googleusercontent.com.plist"; sourceTree = "<group>"; };
 		A1F4C20D2F3A3B7F00D73F86 /* Ecommerce.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Ecommerce.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A1F4C21C2F3A3CE300D73F86 /* Pacifico-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Pacifico-Regular.ttf"; sourceTree = "<group>"; };
 		A1F4C21E2F3A3CF700D73F86 /* Ecommerce-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "Ecommerce-Info.plist"; sourceTree = "<group>"; };
@@ -29,6 +32,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A1C843EA2F51F0F0005EB54C /* GoogleSignIn in Frameworks */,
+				A1C843EC2F51F0F0005EB54C /* GoogleSignInSwift in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -41,6 +46,7 @@
 				A1F4C21E2F3A3CF700D73F86 /* Ecommerce-Info.plist */,
 				A1F4C21B2F3A3CC300D73F86 /* Font */,
 				A1F4C20E2F3A3B7F00D73F86 /* Products */,
+				A1C843E72F51EF89005EB54C /* client_921930640335-5e1p6hc8gq4c30tlm1fq1sfnvbnv12pc.apps.googleusercontent.com.plist */,
 			);
 			sourceTree = "<group>";
 		};
@@ -81,6 +87,8 @@
 			);
 			name = Ecommerce;
 			packageProductDependencies = (
+				A1C843E92F51F0F0005EB54C /* GoogleSignIn */,
+				A1C843EB2F51F0F0005EB54C /* GoogleSignInSwift */,
 			);
 			productName = Ecommerce;
 			productReference = A1F4C20D2F3A3B7F00D73F86 /* Ecommerce.app */;
@@ -110,6 +118,9 @@
 			);
 			mainGroup = A1F4C2042F3A3B7F00D73F86;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				A1C843E82F51F0F0005EB54C /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = A1F4C20E2F3A3B7F00D73F86 /* Products */;
 			projectDirPath = "";
@@ -351,6 +362,30 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		A1C843E82F51F0F0005EB54C /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 9.1.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A1C843E92F51F0F0005EB54C /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A1C843E82F51F0F0005EB54C /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignIn;
+		};
+		A1C843EB2F51F0F0005EB54C /* GoogleSignInSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A1C843E82F51F0F0005EB54C /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignInSwift;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = A1F4C2052F3A3B7F00D73F86 /* Project object */;
 }

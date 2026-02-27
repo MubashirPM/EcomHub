@@ -9,14 +9,17 @@ import Foundation
 
 enum AppConfig {
     static var baseURL: String {
-        "https://ucraft.adwaith.space/"
+        "https://ucraft.adwaith.space/api"
     }
 }
 
 enum EndPoints {
     // Auth EndPoints
-    static let signIn = "login"
-    static let signUp = "signup"
+    static let signIn = "/login"
+    static let signUp = "/signup"
+    
+    // GoogleLogin
+    static let google = "/auth/google/callback"
     
     // HomeEndPoints
     static let Home = "home"

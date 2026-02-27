@@ -11,7 +11,7 @@ import SwiftUI
 struct SignInView: View {
     
     @StateObject private var viewModel = SignInViewModel()
-    
+    @State private var goToSignUp = false
     var body: some View {
         NavigationStack {
             ZStack {
@@ -42,9 +42,9 @@ struct SignInView: View {
                             
                             TextField("Enter Email",
                                       text: $viewModel.email)
-                                .padding()
-                                .background(Color.gray.opacity(0.1))
-                                .cornerRadius(10)
+                            .padding()
+                            .background(Color.gray.opacity(0.1))
+                            .cornerRadius(10)
                         }
                         
                         // Password
@@ -53,9 +53,9 @@ struct SignInView: View {
                             
                             SecureField("Password",
                                         text: $viewModel.password)
-                                .padding()
-                                .background(Color.gray.opacity(0.1))
-                                .cornerRadius(10)
+                            .padding()
+                            .background(Color.gray.opacity(0.1))
+                            .cornerRadius(10)
                         }
                         
                         // Error Message
@@ -67,7 +67,9 @@ struct SignInView: View {
                         
                         // Sign In Button
                         Button {
-                            viewModel.signIn()
+                            Task{
+                              await viewModel.signIn()
+                            }
                         } label: {
                             if viewModel.isLoading {
                                 ProgressView()
@@ -83,23 +85,58 @@ struct SignInView: View {
                         .background(Color("CustomColor"))
                         .cornerRadius(12)
                         
-                            
+                        // Google Button
+                        Button {
+                            Task{
+                            await viewModel.signInWithGoogle()
+                            }
+                        } label: {
+                            HStack {
+                                Text("G")
+                                    .fontWeight(.bold)
+                                
+                                Text("Sign in with Google")
+                            }
+                            .foregroundStyle(Color.custom)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.gray.opacity(0.15))
+                            .cornerRadius(12)
+                        }
+
+                        // Create Account Section
+                        HStack {
+                            Text("Don't have account?")
+                                .foregroundColor(.gray)
+                                
+                            Button {
+                                goToSignUp = true
+                            } label: {
+                                Text("Create another account")
+                                    .foregroundStyle(Color("CustomColor"))
+                                   
+                            }
+                        }
+                        .font(.footnote)
                     }
                     .padding()
                     .frame(maxWidth: 350, maxHeight: 450)
                     .background(Color.white)
                     .cornerRadius(30)
                 }
-
-                
             }
-            
-            
-            .navigationDestination(isPresented: $viewModel.isLoggedIn) {
+                        
+            .navigationDestination(
+                isPresented: $viewModel.isLoggedIn
+            ) {
                 CustomTabBar()
                     .navigationBarBackButtonHidden(true)
                     .toolbar(.hidden, for: .navigationBar)
             }
+            .navigationDestination(isPresented: $goToSignUp) {
+                SignUpView()
+            }
         }
     }
 }
+ 
