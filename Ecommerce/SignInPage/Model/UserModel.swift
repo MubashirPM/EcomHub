@@ -11,12 +11,7 @@ struct User: Codable {
     let id: String
     let fullName: String
     let email: String
-    
-    enum CodingKeys: String, CodingKey {
-        case id = "_id"
-        case fullName
-        case email
-    }
+    let role : String
 }
 
 struct LoginResponse: Decodable {

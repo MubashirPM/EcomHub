@@ -47,6 +47,7 @@
 				A1F4C21B2F3A3CC300D73F86 /* Font */,
 				A1F4C20E2F3A3B7F00D73F86 /* Products */,
 				A1C843E72F51EF89005EB54C /* client_921930640335-5e1p6hc8gq4c30tlm1fq1sfnvbnv12pc.apps.googleusercontent.com.plist */,
+				A1F4C20F2F3A3B7F00D73F86 /* Ecommerce */,
 			);
 			sourceTree = "<group>";
 		};
@@ -61,7 +62,6 @@
 		A1F4C21B2F3A3CC300D73F86 /* Font */ = {
 			isa = PBXGroup;
 			children = (
-				A1F4C20F2F3A3B7F00D73F86 /* Ecommerce */,
 				A1F4C21C2F3A3CE300D73F86 /* Pacifico-Regular.ttf */,
 			);
 			path = Font;

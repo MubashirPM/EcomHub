@@ -27,11 +27,16 @@ class SignInViewModel: ObservableObject {
     // Email Login
     func signIn() async {
         
+        print("🚨 signIn() STARTED")
+            print("Using email:", email)
+            print("Using password:", password)
+        
         guard !email.isEmpty, !password.isEmpty else {
             errorMessage = "Email and Password are required."
             return
         }
         
+        print("✅ Guard passed – building URL")
         errorMessage = nil
         isLoading = true
         

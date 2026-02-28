@@ -67,7 +67,9 @@ struct SignInView: View {
                         
                         // Sign In Button
                         Button {
+                            print("🚀 Button was tapped!!!")
                             Task{
+                                print("🧪 Starting async task")
                               await viewModel.signIn()
                             }
                         } label: {
