@@ -10,6 +10,9 @@ import SwiftUI
 
 struct OTPView: View {
     
+    let email : String
+    let fullName : String
+    let password : String
     @StateObject private var viewModel = OTPViewModel()
     @FocusState private var focusedField: Int?
     
@@ -48,7 +51,10 @@ struct OTPView: View {
                             }
                             
                             if newValue.count > 1 {
-                                viewModel.otpFields[index] = String(newValue.prefix(1))
+                                viewModel
+                                    .otpFields[index] = String(
+                                        newValue.prefix(1)
+                                    )
                             }
                         }
                 }
@@ -61,9 +67,20 @@ struct OTPView: View {
                     .font(.footnote)
             }
             
+            if let success = viewModel.successMessage {
+                Text(success)
+                    .foregroundColor(.green)
+                    .font(.footnote)
+            }
+            
+            
             // Verify Button
             Button {
-                viewModel.verifyOTP()
+                Task{
+                    await viewModel.verifyOTP(email: email,
+                                              fullName: fullName,
+                                              password: password)
+                }
             } label: {
                 if viewModel.isLoading {
                     ProgressView()
@@ -82,17 +99,19 @@ struct OTPView: View {
             
             // Resend
             Button("Resend OTP") {
-                viewModel.resendOTP()
+                Task{
+                    await viewModel.resendOTP(email: email)
+                }
             }
             .font(.footnote)
             .foregroundColor(Color("CustomColor"))
             
             Spacer()
         }
+        .navigationDestination(isPresented: $viewModel.isVerified) {
+            SignInView()
+        }
         .padding()
         .navigationBarBackButtonHidden(true)
     }
-}
-#Preview {
-    OTPView()
 }

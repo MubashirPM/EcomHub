@@ -78,6 +78,11 @@ class SignUpViewModel : ObservableObject {
             // API Call
             let (data, response) = try await URLSession.shared.data(for: request)
             
+            if let rawJSON = String(data: data, encoding: .utf8) {
+                print("Raw Backend Response:")
+                print(rawJSON)
+            }
+            
             guard let httpResponse = response as? HTTPURLResponse else {
                 errorMessage = "Invalid response"
                 isLoading = false
@@ -85,7 +90,7 @@ class SignUpViewModel : ObservableObject {
             }
             
             // Decode backend response (if JSON)
-            if httpResponse.statusCode == 200 {
+            if httpResponse.statusCode == 201 {
                 isSignedUp = true
             } else {
                 if let errorData = String(data: data, encoding: .utf8) {

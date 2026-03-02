@@ -115,6 +115,7 @@ struct SignUpView: View {
                             Text(error)
                                 .foregroundColor(.red)
                                 .font(.footnote)
+                           
                         }
                         
                         // Sign up button
@@ -147,7 +148,9 @@ struct SignUpView: View {
                 }
             }
             .navigationDestination(isPresented: $viewModel.isSignedUp) {
-                OTPView()
+                OTPView(email: viewModel.email,
+                        fullName: viewModel.fullName,
+                        password: viewModel.password)
             }
         }
     }

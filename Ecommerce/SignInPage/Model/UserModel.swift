@@ -22,3 +22,8 @@ struct LoginResponse: Decodable {
     let type: String?
     let code: String?
 }
+
+struct GoogleLoginResponse: Codable {
+    let token: String
+    let user: User
+}

@@ -4,14 +4,14 @@
 //
 //  Created by Mubashir PM on 25/02/26.
 //
-
-
 import SwiftUI
 
 struct DetailsPageView: View {
     
     @StateObject private var viewModel: ProductDetailViewModel
     @Environment(\.dismiss) var dismiss
+    @State private var showToast = false
+    @State private var toastMessage = ""
     
     init(product: ProductDetail) {
         _viewModel = StateObject(
@@ -19,13 +19,12 @@ struct DetailsPageView: View {
         )
     }
 
-    /// Accepts a home screen Item so navigation from HomeScreenView works.
+//     Accepts a home screen Item so navigation from HomeScreenView works.
     init(product item: Item) {
         _viewModel = StateObject(
             wrappedValue: ProductDetailViewModel(product: ProductDetail(item: item))
         )
     }
-    
     var body: some View {
         VStack(spacing: 0) {
             
@@ -160,8 +159,17 @@ struct DetailsPageView: View {
         }
         .navigationBarBackButtonHidden(true)
         .safeAreaInset(edge: .bottom) {
-            NavigationLink {
-                CardView_()
+            Button {
+                toastMessage = "Item added to cart"
+                
+                withAnimation {
+                    showToast = true
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now()+2){
+                    withAnimation {
+                        showToast = false
+                    }
+                }
             } label: {
                 Text("Add To Basket")
                     .foregroundColor(.white)
@@ -173,6 +181,25 @@ struct DetailsPageView: View {
             }
             .background(Color.white)
             .shadow(radius: 5)
+        }
+        .overlay(alignment : .top) {
+            if showToast {
+                HStack {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundStyle(.white)
+                    Text(toastMessage)
+                        .foregroundStyle(.white)
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                }
+                .padding()
+                .background(Color.custom)
+                .cornerRadius(12)
+                .padding(.horizontal,20)
+                .padding(.top,50)
+                .shadow(radius: 5)
+                .transition(.move(edge: .top).combined(with:.opacity))
+            }
         }
     }
 }

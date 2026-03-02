@@ -115,20 +115,24 @@ class SignInViewModel: ObservableObject {
         guard let rootViewController = UIApplication.shared.connectedScenes
             .compactMap({ $0 as? UIWindowScene })
             .first?.windows.first?.rootViewController else {
+            self.errorMessage = "Unable to get root view controller"
             return
         }
-
+        
+        isLoading = true
+            errorMessage = nil
+        
         do {
             let result = try await GIDSignIn.sharedInstance.signIn(
                 withPresenting: rootViewController
             )
             
             guard let idToken = result.user.idToken?.tokenString else {
-                print("No ID Token found")
+                self.errorMessage = "Failed to get ID token"
                 return
             }
             
-            await sendTokenToBackend(idToken: idToken)
+            try await sendTokenToBackend(idToken: idToken)
             
         } catch {
             print("Google Sign In Error:", error.localizedDescription)
@@ -136,9 +140,12 @@ class SignInViewModel: ObservableObject {
     }
     
     
-    func sendTokenToBackend(idToken: String) async {
+    func sendTokenToBackend(idToken: String) async throws {
         
-        guard let url = URL(string: "http://localhost:3000/auth/google") else { return }
+        guard let url = URL(string: "\(AppConfig.baseURL)/auth/google") else {
+            
+            return
+        }
         
         var request = URLRequest(url: url)
         request.httpMethod = "POST"

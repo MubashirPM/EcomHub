@@ -23,5 +23,8 @@ enum EndPoints {
     
     // HomeEndPoints
     static let Home = "home"
+    
+    // OTP EndPoints
+    static let Otp = "/verifyOTP"
 }
 
