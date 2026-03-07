@@ -8,8 +8,9 @@
 import SwiftUI
 
 struct NewArrivalsview_: View {
-    @State private var searchText = ""
-    
+
+    @StateObject private var viewModel = NewArrivalsViewModel()
+
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
@@ -27,7 +28,6 @@ struct NewArrivalsview_: View {
                                 .foregroundColor(.yellow)
                                 .frame(width: 50, height: 50)
                         }
-
                     }
                     .padding(.horizontal, 20)
                     .padding(.top, 50)
@@ -36,12 +36,10 @@ struct NewArrivalsview_: View {
                     HStack {
                         Image(systemName: "magnifyingglass")
                             .foregroundColor(.gray)
-
-                        TextField("Search Product", text: $searchText)
-
-                        if !searchText.isEmpty {
+                        TextField("Search Product", text: $viewModel.searchText)
+                        if !viewModel.searchText.isEmpty {
                             Button {
-                                searchText = ""
+                                viewModel.searchText = ""
                             } label: {
                                 Image(systemName: "xmark.circle.fill")
                                     .foregroundColor(.gray)
@@ -57,31 +55,41 @@ struct NewArrivalsview_: View {
                 .background(Color.custom)
                 .clipShape(RoundedRectangle(cornerRadius: 30))
 
-                LazyVGrid(columns: [
-                    GridItem(.flexible()),
-                    GridItem(.flexible())
-                ]) {
-                    ForEach(products) { product in
-                        ProductCard(product: product)
+                Group {
+                    if viewModel.isLoading && viewModel.products.isEmpty {
+                        ProgressView()
+                            .padding(.top, 40)
+                    } else if let error = viewModel.errorMessage {
+                        Text(error)
+                            .foregroundColor(.red)
+                            .padding(.top, 20)
+                    } else if viewModel.filteredProducts.isEmpty {
+                        Text("No new arrivals found")
+                            .foregroundColor(.gray)
+                            .padding(.top, 40)
+                    } else {
+                        LazyVGrid(columns: [
+                            GridItem(.flexible()),
+                            GridItem(.flexible())
+                        ]) {
+                            ForEach(viewModel.filteredProducts) { product in
+                                NavigationLink(destination: DetailsPageView(product: product)) {
+                                    ProductsCard(product: product)
+                                }
+                            }
+                        }
+                        .padding()
                     }
                 }
-                .padding()
+                .frame(maxWidth: .infinity, minHeight: 200)
                 .background(Color.white)
             }
-//            .navigationBarBackButtonHidden(true)
-//            .toolbar(.hidden, for: .navigationBar)
         }
         .ignoresSafeArea(edges: .top)
+        .onAppear {
+            viewModel.fetchNewArrivals()
+        }
     }
-
-    let products = [
-        Product(imageName: "HomeImage1", name: "Nike Air Logo Oversized Shirt", price: "Rs. 1499"),
-        Product(imageName: "SignUpImage", name: "Minimal Classic Tee", price: "Rs. 1499"),
-        Product(imageName: "HomeImage3", name: "NY Baseball Street Tee", price: "Rs. 1499"),
-        Product(imageName: "HomeImage4", name: "Essential Black Tee", price: "Rs. 1499"),
-        Product(imageName: "signin", name: "Nike Air Logo Oversized Tee", price: "Rs. 1499"),
-        Product(imageName: "HomeImage2", name: "Nike Air Logo Oversized Shirt", price: "Rs. 1499")
-    ]
 }
 
 #Preview {

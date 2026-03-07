@@ -50,4 +50,18 @@ struct ProductDetail: Identifiable {
         self.descriptionLines = []
         self.description = []
     }
+
+    /// Creates a ProductDetail from a HomeProduct (API model) for navigation from home sections.
+    init(homeProduct: HomeProduct) {
+        self.id = UUID()
+        self.title = homeProduct.productName
+        self.name = homeProduct.productName
+        self.descriptionLines = [homeProduct.description]
+        self.description = [homeProduct.description]
+        self.price = Int(homeProduct.salePrice)
+        let firstImage = homeProduct.productImage.first ?? ""
+        self.imageName = firstImage.isEmpty
+            ? ""
+            : "https://ucraft.adwaith.space/uploads/product-images/\(firstImage)"
+    }
 }

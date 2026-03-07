@@ -12,6 +12,7 @@ struct HomeScreenView_: View {
     
     @StateObject private var viewModel = HomeViewModel()
     @Binding var selectedTab: Int
+    @State private var navigateToSearch = false
     
     var body: some View {
         
@@ -50,6 +51,12 @@ struct HomeScreenView_: View {
                         TextField("Search Item",
                                   text: $viewModel.searchText)
                             .foregroundColor(.black)
+                            .submitLabel(.search)
+                            .onSubmit {
+                                if !viewModel.searchText.isEmpty {
+                                    navigateToSearch = true
+                                }
+                            }
 
                         if !viewModel.searchText.isEmpty {
                             Button {
@@ -69,135 +76,241 @@ struct HomeScreenView_: View {
 
                 .padding(.top, -10)
                 
-                // Content
-                ScrollView {
+                
+                ZStack {
                     
-                    VStack(spacing: 20) {
+                    RoundedRectangle(cornerRadius: 30)
+                            .fill(Color.white)
+                            .ignoresSafeArea(edges: .bottom)
+                    
+                    // Content
+                    ScrollView {
                         
-                        VStack(alignment: .leading) {
-                            Text("Welcome to,")
+                        VStack(spacing: 20) {
+                            
+                            VStack(alignment: .leading) {
+                                Text("Welcome to,")
+                                    .font(.custom("Pacifico-Regular", size: 28))
+                                
+                                HStack(spacing: 8) {
+                                    Text("Our")
+                                    Text("Fashion")
+                                        .foregroundColor(Color.custom
+                                        )
+                                    Text("Store")
+                                        .foregroundColor(.gray)
+                                }
                                 .font(.custom("Pacifico-Regular", size: 28))
-                            
-                            HStack(spacing: 8) {
-                                Text("Our")
-                                Text("Fashion")
-                                    .foregroundColor(Color.custom
-                                    )
-                                Text("Store")
-                                    .foregroundColor(.gray)
                             }
-                            .font(.custom("Pacifico-Regular", size: 28))
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal, 20)
-                        .padding(.top, 8)
-                        //                         New Arrivals Banner
-                        ZStack(alignment: .leading) {
-                            
-                            RoundedRectangle(cornerRadius: 15)
-                                .fill(Color.black)
-                                .frame(height: 130)   // reduced from 180
-                            
-                            VStack(alignment: .leading, spacing: 6) {
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, 20)
+                            .padding(.top, 8)
+                            //                         New Arrivals Banner
+                            ZStack(alignment: .leading) {
                                 
-                                Text("NEW ARRIVALS 👕")
-                                    .font(.headline)   // smaller than title2
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.white)
+                                RoundedRectangle(cornerRadius: 15)
+                                    .fill(Color.black)
+                                    .frame(height: 130)   // reduced from 180
                                 
-                                Text("Latest styles in Shirts & T-Shirts")
-                                    .font(.caption)    // smaller
-                                    .foregroundColor(.white.opacity(0.8))
-                                
-                                NavigationLink(
-                                    destination: NewArrivalsview_()
-                                ) {
-                                    Text("Shop Now")
-                                        .font(
-                                            .caption2
-                                        )   // smaller button text
-                                        .fontWeight(.semibold)
-                                        .foregroundColor(.black)
-                                        .padding(.horizontal, 12)
-                                        .padding(.vertical, 6)
-                                        .background(Color.white)
-                                        .cornerRadius(15)
-                                }
-                                .padding(.top, 4)
-                            }
-                            .padding(.leading, 20)
-                        }
-                        .padding(.horizontal, 20)
-                        .padding(.bottom, 15)
-
-                        
-                        if viewModel.filteredItems.isEmpty {
-                            
-                            Text("No Items Found")
-                                .font(.headline)
-                                .padding(.top, 50)
-                            
-                        } else {
-                            
-                            LazyVGrid(columns: [
-                                GridItem(.flexible()),
-                                GridItem(.flexible())
-                            ], spacing: 20) {
-                                
-                                ForEach(viewModel.filteredItems) { item in
+                                VStack(alignment: .leading, spacing: 6) {
+                                    
+                                    Text("NEW ARRIVALS 👕")
+                                        .font(.headline)   // smaller than title2
+                                        .fontWeight(.bold)
+                                        .foregroundColor(.white)
+                                    
+                                    Text("Latest styles in Shirts & T-Shirts")
+                                        .font(.caption)    // smaller
+                                        .foregroundColor(.white.opacity(0.8))
+                                    
                                     NavigationLink(
-                                        destination: DetailsPageView(product: item)
-                                    ){
-                                        ItemCard(item: item)
+                                        destination: NewArrivalsview_()
+                                    ) {
+                                        Text("Shop Now")
+                                            .font(
+                                                .caption2
+                                            )   // smaller button text
+                                            .fontWeight(.semibold)
+                                            .foregroundColor(.black)
+                                            .padding(.horizontal, 12)
+                                            .padding(.vertical, 6)
+                                            .background(Color.white)
+                                            .cornerRadius(15)
                                     }
+                                    .padding(.top, 4)
                                 }
+                                .padding(.leading, 20)
                             }
                             .padding(.horizontal, 20)
-                        }
+                            .padding(.bottom, 15)
+                            
+                            VStack(alignment: .leading, spacing: 10) {
+                                
+                                HStack {
+                                    Text("Trending")
+                                        .font(.headline)
+                                        .bold()
+                                    
+                                    Spacer()
+                                }
+                                .padding(.horizontal, 20)
+                                
+                                ScrollView(.horizontal, showsIndicators: false) {
+                                    HStack(spacing: 15) {
+                                        ForEach(viewModel.filteredTrending) { product in
+                                            NavigationLink(destination: DetailsPageView(product: product)) {
+                                                ProductsCard(product: product)
+                                            }
+                                        }
+                                        if viewModel.searchText != "" && viewModel.filteredNewArrivals.isEmpty {
+                                            Text("No products found")
+                                                .foregroundColor(.gray)
+                                                .padding()
+                                        }
+                                    }
+                                    .padding(.horizontal, 20)
+                                    .padding(.vertical,6)
+                                }
+                            }
+                            // MARK: New Arrivals Section
+                            VStack(alignment: .leading, spacing: 10) {
+                                
+                                HStack {
+                                    Text("New Arrivals")
+                                        .font(.headline)
+                                        .bold()
+                                    
+                                    Spacer()
+                                }
+                                .padding(.horizontal, 20)
+                                
+                                ScrollView(.horizontal, showsIndicators: false) {
+                                    HStack(spacing: 15) {
+                                        ForEach(viewModel.filteredNewArrivals) { product in
+                                            NavigationLink(destination: DetailsPageView(product: product)) {
+                                                ProductsCard(product: product)
+                                                    .padding(.vertical,5)
+                                            }
+                                        }
+                                        if viewModel.searchText != "" && viewModel.filteredNewArrivals.isEmpty {
+                                            Text("No products found")
+                                                .foregroundColor(.gray)
+                                                .padding()
+                                        }
+                                    }
+                                    .padding(.horizontal, 20)
+                                }
+                            }
+                            
+                            VStack(alignment: .leading, spacing: 10) {
+                                
+                                HStack {
+                                    Text("Premium")
+                                        .font(.headline)
+                                        .bold()
+                                    
+                                    Spacer()
+                                }
+                                .padding(.horizontal, 20)
+                                
+                                ScrollView(.horizontal, showsIndicators: false) {
+                                    HStack(spacing: 15) {
+                                        ForEach(viewModel.filteredFeatured) { product in
+                                            NavigationLink(destination: DetailsPageView(product: product)) {
+                                                ProductsCard(product: product)
+                                                    .padding(.vertical, 5)
+                                            }
+                                        }
+                                        if viewModel.searchText != "" && viewModel.filteredNewArrivals.isEmpty {
+                                            Text("No products found")
+                                                .foregroundColor(.gray)
+                                                .padding()
+                                        }
+                                    }
+                                    .padding(.horizontal, 20)
+                                }
+                            }
+              }
                         
-                        Spacer(minLength: 100)
+                        .padding(.top,10)
                     }
                 }
                 .background(Color.white)
-                .clipShape(
-                    .rect(
-                        topLeadingRadius: 30,
-                        bottomLeadingRadius: 0,
-                        bottomTrailingRadius: 0,
-                        topTrailingRadius: 30
-                    )
+                .background(
+                    RoundedRectangle(cornerRadius: 30)
+                        .fill(Color.white)
                 )
             }
+            
         }
         .ignoresSafeArea(edges: .bottom)
+        .onAppear {
+            viewModel.fetchHomeData()
+        }
+
     }
 }
-import SwiftUI
 
-struct ItemCard: View {
+//#Preview {
+//    HomeScreenView_()
+//}
+
+import SwiftUI
+struct ProductsCard: View {
     
-    let item: Item
+    let product: HomeProduct
     
     var body: some View {
-        VStack(spacing: 10) {
-            Image(item.imageName)
-                .resizable()
-                .scaledToFit()
-                .frame(height: 120)
+        VStack(spacing: 8) {
             
-            Text(item.name)
+            if let firstImage = product.productImage.first {
+                
+                let fullURL = "https://ucraft.adwaith.space/uploads/product-images/\(firstImage)"
+                    
+                
+                AsyncImage(
+                    url: URL(string: fullURL)
+                ) { image in
+                    image
+                        .resizable()
+                        .scaledToFit()
+                } placeholder: {
+                    ProgressView()
+                }
+                .frame(width: 110, height: 110)
+                .background(Color(.systemGray6))
+                .clipped()
+                .cornerRadius(10)
+                .onAppear {
+                    print("IMAGE URL:", fullURL)
+                }
+            }
+            
+            Text(product.productName)
                 .font(.caption)
                 .bold()
-                .foregroundStyle(.black)
+                .foregroundColor(.black)
                 .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .frame(height: 32)
             
-            Text(item.price)
-                .font(.headline)
+            Text("Rs. \(product.salePrice)")
+                .font(.subheadline)
                 .foregroundColor(.red)
         }
-        .padding()
-        .background(Color.white)
-        .cornerRadius(15)
-        .shadow(radius: 5)
+        .frame(width: 154,height: 220)
+        .clipped()
+        .padding(8)
+        .padding(.top,3)
+        .background(RoundedRectangle(cornerRadius: 13)
+            .fill(Color.white)
+                  .shadow(color: .black.opacity(0.5), radius: 3, x: 0, y: 2)
+        )
+//        .fill(Color.white)
+//        .shadow(radius: 2)
+//        .cornerRadius(13)
+//        .shadow(radius: 2)
+      
     }
 }
+

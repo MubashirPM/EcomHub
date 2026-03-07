@@ -15,6 +15,7 @@ struct CustomTabBar: View {
         TabView (selection: $selectedTab) {
             NavigationStack {
                 HomeScreenView_(selectedTab: $selectedTab)
+                    
             }
             .tabItem {
                 Image(systemName: "square.grid.2x2")

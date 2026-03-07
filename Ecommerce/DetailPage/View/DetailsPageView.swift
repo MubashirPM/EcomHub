@@ -25,6 +25,14 @@ struct DetailsPageView: View {
             wrappedValue: ProductDetailViewModel(product: ProductDetail(item: item))
         )
     }
+
+    // Accepts HomeProduct from API so navigation from home sections (Trending, New Arrivals, Premium) works.
+    init(product homeProduct: HomeProduct) {
+        _viewModel = StateObject(
+            wrappedValue: ProductDetailViewModel(product: ProductDetail(homeProduct: homeProduct))
+        )
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             
@@ -51,11 +59,22 @@ struct DetailsPageView: View {
                         RoundedRectangle(cornerRadius: 20)
                             .fill(Color(.systemGray6))
                             .frame(height: 300)
-                        
-                        Image(viewModel.product.imageName)
-                            .resizable()
-                            .scaledToFit()
+
+                        if viewModel.product.imageName.hasPrefix("http") {
+                            AsyncImage(url: URL(string: viewModel.product.imageName)) { image in
+                                image
+                                    .resizable()
+                                    .scaledToFit()
+                            } placeholder: {
+                                ProgressView()
+                            }
                             .frame(height: 280)
+                        } else {
+                            Image(viewModel.product.imageName)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(height: 280)
+                        }
                     }
                     
                     Text(viewModel.product.title)

@@ -19,12 +19,21 @@ enum EndPoints {
     static let signUp = "/signup"
     
     // GoogleLogin
-    static let google = "/auth/google/callback"
+    static let google = "/auth/google"
     
     // HomeEndPoints
-    static let Home = "home"
+    static let Home = "/home"
     
     // OTP EndPoints
     static let Otp = "/verifyOTP"
+    
+    // New Arrivals
+    static let newArrivals = "/new-arrivals"
+    
+    // Featured
+    static let featured = "/featured"
+    
+    // Search
+    static let search = "/search-products"
 }
 

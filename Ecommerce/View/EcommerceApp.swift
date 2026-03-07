@@ -1,3 +1,4 @@
+
 //
 //  EcommerceApp.swift
 //  Ecommerce
@@ -11,7 +12,7 @@ import SwiftUI
 struct EcommerceApp: App {
     var body: some Scene {
         WindowGroup {
-            WelcomePage()
+            CustomTabBar()
         }
     }
 }
