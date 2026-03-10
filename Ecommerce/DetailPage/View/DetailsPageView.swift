@@ -13,24 +13,19 @@ struct DetailsPageView: View {
     @State private var showToast = false
     @State private var toastMessage = ""
     
-    init(product: ProductDetail) {
-        _viewModel = StateObject(
-            wrappedValue: ProductDetailViewModel(product: product)
-        )
-    }
-
+   
 //     Accepts a home screen Item so navigation from HomeScreenView works.
-    init(product item: Item) {
-        _viewModel = StateObject(
-            wrappedValue: ProductDetailViewModel(product: ProductDetail(item: item))
-        )
+    let productId: String
+
+    init(productId: String) {
+        self.productId = productId
+        _viewModel = StateObject(wrappedValue: ProductDetailViewModel())
     }
 
     // Accepts HomeProduct from API so navigation from home sections (Trending, New Arrivals, Premium) works.
     init(product homeProduct: HomeProduct) {
-        _viewModel = StateObject(
-            wrappedValue: ProductDetailViewModel(product: ProductDetail(homeProduct: homeProduct))
-        )
+        self.productId = homeProduct.id
+        _viewModel = StateObject(wrappedValue: ProductDetailViewModel())
     }
 
     var body: some View {
@@ -45,6 +40,7 @@ struct DetailsPageView: View {
                         .font(.title2)
                         .foregroundStyle(.black)
                         .padding()
+                        .bold()
                 }
                 Spacer()
             }
@@ -52,128 +48,146 @@ struct DetailsPageView: View {
             .padding(.top, 10)
             
             ScrollView {
-                VStack(alignment: .leading, spacing: 10) {
+                if let product = viewModel.product {
                     
-                    // Product Image
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 20)
-                            .fill(Color(.systemGray6))
-                            .frame(height: 300)
+                    VStack(alignment: .leading, spacing: 10) {
+                        
+                        // Product Image
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 20)
+                                .fill(Color(.systemGray6))
+                                .frame(height: 300)
 
-                        if viewModel.product.imageName.hasPrefix("http") {
-                            AsyncImage(url: URL(string: viewModel.product.imageName)) { image in
-                                image
-                                    .resizable()
-                                    .scaledToFit()
-                            } placeholder: {
-                                ProgressView()
+                            TabView {
+                                ForEach(product.imageURL, id: \.self) { url in
+                                    AsyncImage(url: URL(string: url)) { phase in
+                                        switch phase {
+                                            
+                                        case .success(let image):
+                                            image
+                                                .resizable()
+                                                .scaledToFit()
+                                            
+                                        case .failure(_):
+                                            Image(systemName: "photo")
+                                            
+                                        default:
+                                            ProgressView()
+                                        }
+                                    }
+                                }
                             }
+                            .tabViewStyle(PageTabViewStyle())
                             .frame(height: 280)
-                        } else {
-                            Image(viewModel.product.imageName)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(height: 280)
                         }
-                    }
-                    
-                    Text(viewModel.product.title)
-                        .font(.title2)
-                        .fontWeight(.bold)
-                    
-                    Text("$\(viewModel.product.price)")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundColor(.red)
-                    
-                    // Quantity
-                    HStack {
-                        Button {
-                            viewModel.decreaseQuantity()
-                        } label: {
-                            Image(systemName: "minus")
-                                .foregroundStyle(.black)
-                        }
-                        
-                        Text("\(viewModel.quantity)")
-                            .frame(width: 30)
-                        
-                        Button {
-                            viewModel.increaseQuantity()
-                        } label: {
-                            Image(systemName: "plus")
-                                .foregroundColor(.red)
-                        }
-                        
-                        Spacer()
-                    }
-                    
-                    // Size Selection
-                    Text("Select Size")
-                        .font(.subheadline)
-                    
-                    HStack {
-                        ForEach(viewModel.sizes, id: \.self) { size in
-                            Button {
-                                viewModel.selectSize(size)
-                            } label: {
-                                Text(size)
-                                    .frame(width: 30, height: 30)
-                                    .foregroundStyle(.black)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 5)
-                                            .stroke(
-                                                viewModel.selectedSize == size
-                                                ? Color.black
-                                                : Color.gray.opacity(0.5),
-                                                lineWidth: 2
-                                            )
-                                    )
-                            }
-                        }
-                    }
-                    
-                    // Toggle Product Detail
-                    Button {
-                        withAnimation {
-                            viewModel.toggleDetailSection()
-                        }
-                    } label: {
+                        Text(product.title)
+                            .font(.title2)
+                            .fontWeight(.bold)
+
+                        Text("$\(product.price)")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .foregroundColor(.red)
+
+                        // Quantity
                         HStack {
-                            Text("Product Detail")
-                                .foregroundStyle(.black)
+                            Button {
+                                viewModel.decreaseQuantity()
+                            } label: {
+                                Image(systemName: "minus")
+                                    .foregroundStyle(.black)
+                            }
+
+                            Text("\(viewModel.quantity)")
+                                .frame(width: 30)
+
+                            Button {
+                                viewModel.increaseQuantity()
+                            } label: {
+                                Image(systemName: "plus")
+                                    .foregroundColor(.red)
+                            }
+
                             Spacer()
-                            Image(systemName:
-                                    viewModel.showProductDetail
-                                  ? "chevron.down"
-                                  : "chevron.up")
-                            .foregroundStyle(.black)
                         }
-                    }
-                    
-                    if viewModel.showProductDetail {
-                        VStack(alignment: .leading, spacing: 8) {
-                            ForEach(viewModel.product.descriptionLines,
-                                    id: \.self) { line in
-                                Text(line)
-                                    .foregroundStyle(.gray)
+
+                        // Size Selection
+                        Text("Select Size")
+                            .font(.subheadline)
+
+                        HStack {
+                            ForEach(viewModel.sizes, id: \.self) { size in
+                                Button {
+                                    viewModel.selectSize(size)
+                                } label: {
+                                    Text(size)
+                                        .frame(width: 30, height: 30)
+                                        .foregroundStyle(.black)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 5)
+                                                .stroke(
+                                                    viewModel.selectedSize == size
+                                                    ? Color.black
+                                                    : Color.gray.opacity(0.5),
+                                                    lineWidth: 2
+                                                )
+                                        )
+                                }
                             }
                         }
-                    }
-                    
-                    // Review
-                    HStack {
-                        Text("Review")
-                            .font(.headline)
-                        Spacer()
-                        ForEach(0..<5) { _ in
-                            Image(systemName: "star.fill")
-                                .foregroundStyle(.red)
+
+                        // Toggle Product Detail
+                        Button {
+                            withAnimation {
+                                viewModel.toggleDetailSection()
+                            }
+                        } label: {
+                            HStack {
+                                Text("Product Detail")
+                                    .foregroundStyle(.black)
+
+                                Spacer()
+
+                                Image(systemName:
+                                        viewModel.showProductDetail
+                                      ? "chevron.down"
+                                      : "chevron.up")
+                                .foregroundStyle(.black)
+                            }
                         }
+
+                        if viewModel.showProductDetail {
+                            VStack(alignment: .leading, spacing: 8) {
+                                ForEach(product.descriptionLines, id: \.self) { line in
+                                    Text(line)
+                                        .foregroundStyle(.gray)
+                                }
+                            }
+                        }
+
+                        // Review
+                        HStack {
+                            Text("Review")
+                                .font(.headline)
+
+                            Spacer()
+
+                            ForEach(0..<5) { _ in
+                                Image(systemName: "star.fill")
+                                    .foregroundStyle(.red)
+                            }
+                        }
+                        .padding(.bottom, 100)
                     }
-                    .padding(.bottom, 100)
+                    .padding()
+                    
+                } else {
+                    ProgressView()
+                        .padding(.top, 200)
                 }
-                .padding()
+            }
+            .task {
+                await viewModel.fetchProduct(id: productId)
             }
         }
         .navigationBarBackButtonHidden(true)

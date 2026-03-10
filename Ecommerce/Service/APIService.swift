@@ -11,6 +11,7 @@ enum AppConfig {
     static var baseURL: String {
         "https://ucraft.adwaith.space/api"
     }
+    static let imageBaseURL = "https://ucraft.adwaith.space/uploads/product-images/"
 }
 
 enum EndPoints {
@@ -35,5 +36,14 @@ enum EndPoints {
     
     // Search
     static let search = "/search-products"
+    
+    // Details
+    static func productDetails(id: String) -> String {
+        return "/product/\(id)"
+    }
+    
+    static let explore = "/explore"
+   
+    static let addReview = "/addReview"
 }
 

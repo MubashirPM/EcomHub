@@ -50,13 +50,13 @@ struct HomeScreenView_: View {
 
                         TextField("Search Item",
                                   text: $viewModel.searchText)
-                            .foregroundColor(.black)
-                            .submitLabel(.search)
-                            .onSubmit {
-                                if !viewModel.searchText.isEmpty {
-                                    navigateToSearch = true
-                                }
+                        .foregroundColor(.black)
+                        .submitLabel(.search)
+                        .onSubmit {
+                            if !viewModel.searchText.isEmpty {
+                                navigateToSearch = true
                             }
+                        }
 
                         if !viewModel.searchText.isEmpty {
                             Button {
@@ -80,8 +80,8 @@ struct HomeScreenView_: View {
                 ZStack {
                     
                     RoundedRectangle(cornerRadius: 30)
-                            .fill(Color.white)
-                            .ignoresSafeArea(edges: .bottom)
+                        .fill(Color.white)
+                        .ignoresSafeArea(edges: .bottom)
                     
                     // Content
                     ScrollView {
@@ -115,7 +115,9 @@ struct HomeScreenView_: View {
                                 VStack(alignment: .leading, spacing: 6) {
                                     
                                     Text("NEW ARRIVALS 👕")
-                                        .font(.headline)   // smaller than title2
+                                        .font(
+                                            .headline
+                                        )   // smaller than title2
                                         .fontWeight(.bold)
                                         .foregroundColor(.white)
                                     
@@ -155,10 +157,19 @@ struct HomeScreenView_: View {
                                 }
                                 .padding(.horizontal, 20)
                                 
-                                ScrollView(.horizontal, showsIndicators: false) {
+                                ScrollView(
+                                    .horizontal,
+                                    showsIndicators: false
+                                ) {
                                     HStack(spacing: 15) {
-                                        ForEach(viewModel.filteredTrending) { product in
-                                            NavigationLink(destination: DetailsPageView(product: product)) {
+                                        ForEach(
+                                            viewModel.filteredTrending
+                                        ) { product in
+                                            NavigationLink(
+                                                destination: DetailsPageView(
+                                                    product: product
+                                                )
+                                            ) {
                                                 ProductsCard(product: product)
                                             }
                                         }
@@ -184,10 +195,19 @@ struct HomeScreenView_: View {
                                 }
                                 .padding(.horizontal, 20)
                                 
-                                ScrollView(.horizontal, showsIndicators: false) {
+                                ScrollView(
+                                    .horizontal,
+                                    showsIndicators: false
+                                ) {
                                     HStack(spacing: 15) {
-                                        ForEach(viewModel.filteredNewArrivals) { product in
-                                            NavigationLink(destination: DetailsPageView(product: product)) {
+                                        ForEach(
+                                            viewModel.filteredNewArrivals
+                                        ) { product in
+                                            NavigationLink(
+                                                destination: DetailsPageView(
+                                                    product: product
+                                                )
+                                            ) {
                                                 ProductsCard(product: product)
                                                     .padding(.vertical,5)
                                             }
@@ -213,10 +233,19 @@ struct HomeScreenView_: View {
                                 }
                                 .padding(.horizontal, 20)
                                 
-                                ScrollView(.horizontal, showsIndicators: false) {
+                                ScrollView(
+                                    .horizontal,
+                                    showsIndicators: false
+                                ) {
                                     HStack(spacing: 15) {
-                                        ForEach(viewModel.filteredFeatured) { product in
-                                            NavigationLink(destination: DetailsPageView(product: product)) {
+                                        ForEach(
+                                            viewModel.filteredFeatured
+                                        ) { product in
+                                            NavigationLink(
+                                                destination: DetailsPageView(
+                                                    product: product
+                                                )
+                                            ) {
                                                 ProductsCard(product: product)
                                                     .padding(.vertical, 5)
                                             }
@@ -230,9 +259,9 @@ struct HomeScreenView_: View {
                                     .padding(.horizontal, 20)
                                 }
                             }
-              }
-                        
+                        }
                         .padding(.top,10)
+                        .padding(.bottom,80)
                     }
                 }
                 .background(Color.white)
@@ -255,7 +284,7 @@ struct HomeScreenView_: View {
 //    HomeScreenView_()
 //}
 
-import SwiftUI
+
 struct ProductsCard: View {
     
     let product: HomeProduct
@@ -277,40 +306,37 @@ struct ProductsCard: View {
                 } placeholder: {
                     ProgressView()
                 }
-                .frame(width: 110, height: 110)
-                .background(Color(.systemGray6))
+                .frame(width: 159, height: 146)
                 .clipped()
-                .cornerRadius(10)
+                .cornerRadius(18)
                 .onAppear {
                     print("IMAGE URL:", fullURL)
                 }
             }
             
-            Text(product.productName)
-                .font(.caption)
-                .bold()
-                .foregroundColor(.black)
-                .multilineTextAlignment(.center)
-                .lineLimit(2)
-                .frame(height: 32)
-            
-            Text("Rs. \(product.salePrice)")
-                .font(.subheadline)
-                .foregroundColor(.red)
+            VStack(spacing: 4) {
+                Text(product.productName)
+                    .font(.caption)
+                    .bold()
+                    .foregroundColor(.black)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+                    .frame(height: 32)
+                
+                Text("Rs. \(product.salePrice, specifier : "%.0f")")
+                    .font(.subheadline)
+                    .bold()
+                    .foregroundColor(Color.custom)
+            }
+            .padding(.horizontal, 6)
         }
-        .frame(width: 154,height: 220)
-        .clipped()
-        .padding(8)
-        .padding(.top,3)
-        .background(RoundedRectangle(cornerRadius: 13)
-            .fill(Color.white)
-                  .shadow(color: .black.opacity(0.5), radius: 3, x: 0, y: 2)
+
+        .padding()
+        .frame(width: 170, height: 220)
+        .background(
+            RoundedRectangle(cornerRadius: 18)
+                .fill(Color(.systemGray4))
         )
-//        .fill(Color.white)
-//        .shadow(radius: 2)
-//        .cornerRadius(13)
-//        .shadow(radius: 2)
-      
     }
 }
 

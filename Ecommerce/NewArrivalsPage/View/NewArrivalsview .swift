@@ -10,6 +10,7 @@ import SwiftUI
 struct NewArrivalsview_: View {
 
     @StateObject private var viewModel = NewArrivalsViewModel()
+    @Environment(\.dismiss) var dismiss
 
     var body: some View {
         ScrollView {
@@ -17,10 +18,20 @@ struct NewArrivalsview_: View {
 
                 VStack(spacing: 0) {
                     HStack {
+                        Button {
+                            dismiss()
+                        } label: {
+                            Image(systemName: "chevron.left")
+                                .font(.title)
+                                .foregroundStyle(.white)
+                                .bold()
+                        }
+
                         FastionStore_()
                         Spacer()
                         NavigationLink {
                             ProfileView()
+                                .font(.title3)
                         } label: {
                             Image(systemName: "person.crop.circle.fill")
                                 .resizable()
@@ -84,6 +95,7 @@ struct NewArrivalsview_: View {
                 .frame(maxWidth: .infinity, minHeight: 200)
                 .background(Color.white)
             }
+            .navigationBarBackButtonHidden(true)
         }
         .ignoresSafeArea(edges: .top)
         .onAppear {

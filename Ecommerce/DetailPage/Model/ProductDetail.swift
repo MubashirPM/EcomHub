@@ -15,7 +15,7 @@ struct ProductDetail: Identifiable {
     let descriptionLines: [String]
     let name: String
     let price: Int
-    let imageName: String
+    let imageURL: [String]
     let description: [String]
 
     init(
@@ -24,7 +24,7 @@ struct ProductDetail: Identifiable {
         descriptionLines: [String],
         name: String,
         price: Int,
-        imageName: String,
+        imageName: [String],
         description: [String]
     ) {
         self.id = id
@@ -32,7 +32,7 @@ struct ProductDetail: Identifiable {
         self.descriptionLines = descriptionLines
         self.name = name
         self.price = price
-        self.imageName = imageName
+        self.imageURL = imageName
         self.description = description
     }
 
@@ -41,7 +41,7 @@ struct ProductDetail: Identifiable {
         self.id = UUID()
         self.title = item.name
         self.name = item.name
-        self.imageName = item.imageName
+        self.imageURL = [item.imageName]
         let numericString = item.price
             .replacingOccurrences(of: "Rs. ", with: "")
             .replacingOccurrences(of: ",", with: "")
@@ -59,9 +59,56 @@ struct ProductDetail: Identifiable {
         self.descriptionLines = [homeProduct.description]
         self.description = [homeProduct.description]
         self.price = Int(homeProduct.salePrice)
-        let firstImage = homeProduct.productImage.first ?? ""
-        self.imageName = firstImage.isEmpty
-            ? ""
-            : "https://ucraft.adwaith.space/uploads/product-images/\(firstImage)"
+        self.imageURL = homeProduct.productImage.map {
+            "https://ucraft.adwaith.space/uploads/product-images/\($0)"
+        }
+    }
+    
+    init(apiProduct: ProductAPI) {
+
+        self.id = UUID()
+
+        self.title = apiProduct.productName
+        self.name = apiProduct.productName
+
+        self.descriptionLines = [apiProduct.description]
+        self.description = [apiProduct.description]
+
+        self.price = apiProduct.salePrice
+
+        let firstImage = apiProduct.productImage.first ?? ""
+
+        self.imageURL = apiProduct.productImage.map {
+            "\(AppConfig.imageBaseURL)\($0)"
+        }
+    }
+}
+
+
+
+struct ProductDetailResponse: Codable {
+    let success: Bool
+    let product: ProductAPI
+}
+
+struct ProductAPI: Codable {
+    let id: String
+    let productName: String
+    let description: String
+    let regularPrice: Int
+    let salePrice: Int
+    let quantity: Int
+    let status: String
+    let productImage: [String]
+
+    enum CodingKeys: String, CodingKey {
+        case id = "_id"
+        case productName
+        case description
+        case regularPrice
+        case salePrice
+        case quantity
+        case status
+        case productImage
     }
 }

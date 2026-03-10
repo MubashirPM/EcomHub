@@ -24,7 +24,7 @@ struct CustomTabBar: View {
             .tag(0)
 
             NavigationStack {
-                ExploreView()
+                ExploreView( selectedTab: $selectedTab)
             }
             .tabItem {
                 Image(systemName: "safari")
@@ -56,6 +56,6 @@ struct CustomTabBar: View {
             }
             .tag(1)
         }
-        .accentColor(.red)
+        .accentColor(.custom)
     }
 }

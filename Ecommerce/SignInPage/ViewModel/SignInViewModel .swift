@@ -31,8 +31,17 @@ class SignInViewModel: ObservableObject {
             print("Using email:", email)
             print("Using password:", password)
         
-        guard !email.isEmpty, !password.isEmpty else {
-            errorMessage = "Email and Password are required."
+       
+        guard !email.isEmpty else {
+            errorMessage = "Please enter your email"
+            return
+        }
+        guard email.contains("@") else {
+            errorMessage = "Please enter a valid email address"
+            return
+        }
+        guard !password.isEmpty else {
+            errorMessage = "Please Enter a valid email address"
             return
         }
         
@@ -87,22 +96,36 @@ class SignInViewModel: ObservableObject {
                     switch decoded.code {
                            
                        case "INVALID_CREDENTIALS":
-                           self.errorMessage = "Email or password is incorrect."
+                           self.errorMessage = "Incorrect email or password."
                            
                        case "USER_NOT_FOUND":
-                           self.errorMessage = "User does not exist."
+                           self.errorMessage = "No account found with this email."
+                        
+                    case "ACCOUNT_BLOCKED":
+                        errorMessage = "Your account is blocker. Contact support"
                            
                        default:
-                           self.errorMessage = decoded.message
+                           self.errorMessage = decoded.message ?? "Login failed. Please try again."
                        }
                 }
+                
+            } else if httpResponse.statusCode == 401 {
+                errorMessage = "Incorrect email or password."
+            } else if httpResponse.statusCode == 404 {
+                errorMessage = "Account not found."
+            } else if httpResponse.statusCode >= 500 {
+                errorMessage = "Server error. Please try again later."
             } else {
-                errorMessage = "Login failed"
+                errorMessage = "Something went wrong"
             }
             
         } catch {
             print("Decoding / API error:", error)
-            errorMessage = error.localizedDescription
+            if(error as? URLError)?.code == .notConnectedToInternet {
+                errorMessage = "No internet connection "
+            } else {
+                errorMessage = "Unable to sign in. Please try again."
+            }
         }
         
         isLoading = false
