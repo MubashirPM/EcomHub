@@ -9,13 +9,13 @@ import SwiftUI
  
 struct CustomTabBar: View {
     @State private var selectedTab = 0
+    @AppStorage("userId") var userId: String = ""
+    @StateObject private var wishlistVM = WishlistViewModel()
+
     var body: some View {
-       
-        
-        TabView (selection: $selectedTab) {
+        TabView(selection: $selectedTab) {
             NavigationStack {
-                HomeScreenView_(selectedTab: $selectedTab)
-                    
+                HomeScreenView_(userId: userId, selectedTab: $selectedTab)
             }
             .tabItem {
                 Image(systemName: "square.grid.2x2")
@@ -24,20 +24,22 @@ struct CustomTabBar: View {
             .tag(0)
 
             NavigationStack {
-                ExploreView( selectedTab: $selectedTab)
+                ExploreView(selectedTab: $selectedTab)
             }
             .tabItem {
                 Image(systemName: "safari")
                 Text("Explore")
             }
+            .tag(1)
 
             NavigationStack {
-                CardView_()
+                CartView()
             }
             .tabItem {
                 Image(systemName: "cart")
                 Text("Cart")
             }
+            .tag(2)
 
             NavigationStack {
                 FavouriteView()
@@ -46,6 +48,7 @@ struct CustomTabBar: View {
                 Image(systemName: "heart")
                 Text("Favourite")
             }
+            .tag(3)
 
             NavigationStack {
                 ProfileView()
@@ -54,8 +57,9 @@ struct CustomTabBar: View {
                 Image(systemName: "person")
                 Text("Account")
             }
-            .tag(1)
+            .tag(4)
         }
+        .environmentObject(wishlistVM)
         .accentColor(.custom)
     }
 }

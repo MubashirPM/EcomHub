@@ -9,22 +9,24 @@ import SwiftUI
 struct DetailsPageView: View {
     
     @StateObject private var viewModel: ProductDetailViewModel
+    @StateObject private var cartViewModel = CartViewModel()
     @Environment(\.dismiss) var dismiss
+    @AppStorage("userId") private var userId: String = ""
     @State private var showToast = false
     @State private var toastMessage = ""
-    
-   
-//     Accepts a home screen Item so navigation from HomeScreenView works.
-    let productId: String
 
-    init(productId: String) {
+    let productId: String
+    let wishlistVM: WishlistViewModel
+
+    init(productId: String, wishlistVM: WishlistViewModel) {
         self.productId = productId
+        self.wishlistVM = wishlistVM
         _viewModel = StateObject(wrappedValue: ProductDetailViewModel())
     }
 
-    // Accepts HomeProduct from API so navigation from home sections (Trending, New Arrivals, Premium) works.
-    init(product homeProduct: HomeProduct) {
+    init(product homeProduct: HomeProduct, wishlistVM: WishlistViewModel) {
         self.productId = homeProduct.id
+        self.wishlistVM = wishlistVM
         _viewModel = StateObject(wrappedValue: ProductDetailViewModel())
     }
 
@@ -32,20 +34,7 @@ struct DetailsPageView: View {
         VStack(spacing: 0) {
             
             // Back Button
-            HStack {
-                Button {
-                    dismiss()
-                } label: {
-                    Image(systemName: "chevron.left")
-                        .font(.title2)
-                        .foregroundStyle(.black)
-                        .padding()
-                        .bold()
-                }
-                Spacer()
-            }
-            .padding(.horizontal, 20)
-            .padding(.top, 10)
+            
             
             ScrollView {
                 if let product = viewModel.product {
@@ -79,6 +68,50 @@ struct DetailsPageView: View {
                             }
                             .tabViewStyle(PageTabViewStyle())
                             .frame(height: 280)
+                            
+                            VStack {
+                                HStack {
+
+                                    Button {
+                                        dismiss()
+                                    } label: {
+                                        Image(systemName: "chevron.left")
+                                            .font(.title2)
+                                            .foregroundColor(.black)
+                                            .padding(10)
+                                            .background(
+                                                Color.white.opacity(0.8)
+                                            )
+                                            .clipShape(Circle())
+                                    }
+
+                                    Spacer()
+
+                                    Button {
+                                        guard !userId.isEmpty else { return }
+                                        Task {
+                                            await wishlistVM.addToWishlist(
+                                                userId: userId,
+                                                productId: productId
+                                            )
+                                        }
+                                    } label: {
+                                        Image(systemName: wishlistVM.isFavorite(productId: productId) ? "heart.fill" : "heart")
+                                            .font(.title2)
+                                            .foregroundColor(.black)
+                                            .padding(10)
+                                            .background(
+                                                Color.white.opacity(0.8)
+                                            )
+                                            .clipShape(Circle())
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                                .padding(.horizontal, 20)
+                                .padding(.top, 10)
+
+                                Spacer()
+                            }
                         }
                         Text(product.title)
                             .font(.title2)
@@ -91,51 +124,77 @@ struct DetailsPageView: View {
 
                         // Quantity
                         HStack {
+
                             Button {
                                 viewModel.decreaseQuantity()
                             } label: {
                                 Image(systemName: "minus")
+                                    .font(.title2)
                                     .foregroundStyle(.black)
                             }
 
                             Text("\(viewModel.quantity)")
-                                .frame(width: 30)
+                                .font(.title2)
+                                .frame(width: 40)
 
                             Button {
                                 viewModel.increaseQuantity()
                             } label: {
                                 Image(systemName: "plus")
+                                    .font(.title2)
                                     .foregroundColor(.red)
                             }
 
                             Spacer()
-                        }
 
-                        // Size Selection
-                        Text("Select Size")
-                            .font(.subheadline)
+                            Button {
+                                
+                                
+                                if let product = viewModel.product {
 
-                        HStack {
-                            ForEach(viewModel.sizes, id: \.self) { size in
-                                Button {
-                                    viewModel.selectSize(size)
-                                } label: {
-                                    Text(size)
-                                        .frame(width: 30, height: 30)
-                                        .foregroundStyle(.black)
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 5)
-                                                .stroke(
-                                                    viewModel.selectedSize == size
-                                                    ? Color.black
-                                                    : Color.gray.opacity(0.5),
-                                                    lineWidth: 2
-                                                )
-                                        )
+                                    let userId = UserDefaults.standard.string(
+                                        forKey: "userId"
+                                    ) ?? ""
+                                    
+                                    print("ProductId:", product.id)
+                                    print("UserId:", userId)
+
+                                    Task {
+                                        await cartViewModel.addToCart(
+                                                       userId: userId,
+                                                       productId: product.id,
+                                                       quantity: viewModel.quantity
+                                                   )
+                                    }
                                 }
+                                
+                                toastMessage = "Item added to cart"
+
+                                withAnimation {
+                                    showToast = true
+                                }
+
+                                DispatchQueue.main
+                                    .asyncAfter(deadline: .now() + 2) {
+                                        withAnimation {
+                                            showToast = false
+                                        }
+                                    }
+
+                            } label: {
+
+                                HStack(spacing: 6) {
+                                    Image(systemName: "cart")
+                                    Text("Add to Cart")
+                                }
+                                .foregroundColor(.white)
+                                .padding(.horizontal,16)
+                                .padding(.vertical,10)
+                                .background(Color.custom)
+                                .cornerRadius(8)
                             }
                         }
-
+                        
                         // Toggle Product Detail
                         Button {
                             withAnimation {
@@ -158,26 +217,123 @@ struct DetailsPageView: View {
 
                         if viewModel.showProductDetail {
                             VStack(alignment: .leading, spacing: 8) {
-                                ForEach(product.descriptionLines, id: \.self) { line in
+                                ForEach(
+                                    product.descriptionLines,
+                                    id: \.self
+                                ) { line in
                                     Text(line)
                                         .foregroundStyle(.gray)
                                 }
                             }
                         }
 
-                        // Review
                         HStack {
                             Text("Review")
                                 .font(.headline)
 
                             Spacer()
 
-                            ForEach(0..<5) { _ in
-                                Image(systemName: "star.fill")
-                                    .foregroundStyle(.red)
+                            ForEach(0..<5) { index in
+                                Image(
+                                    systemName: index < viewModel.selectedRating ? "star.fill" : "star"
+                                )
+                                .foregroundStyle(.red)
+                                .onTapGesture {
+                                    let rating = index + 1
+                                    viewModel.selectedRating = rating
+                                }
                             }
                         }
-                        .padding(.bottom, 100)
+
+                        HStack (spacing: 10) {
+
+                            TextField(
+                                "Write your review...",
+                                text: $viewModel.reviewComment
+                            )
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+
+                            Button {
+
+                                let email = UserDefaults.standard.string(
+                                    forKey: "userEmail"
+                                ) ?? ""
+
+                                Task {
+                                    await viewModel.addReview(
+                                        email: email,
+                                        productId: productId,
+                                        rating: viewModel.selectedRating,
+                                        comment: viewModel.reviewComment
+                                    )
+                                    await viewModel.fetchProduct(id: productId)
+                                        
+                                    // Reset UI
+                                    viewModel.selectedRating = 0
+                                    viewModel.reviewComment = ""
+                                }
+
+                            } label: {
+                                Text("Submit")
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal,16)
+                                    .padding(.vertical,10)
+                                    .background(Color.custom)
+                                    .cornerRadius(8)
+                                
+                             
+                            }
+
+                        }
+                        .padding(.top, 10)
+                        
+                        if let product = viewModel.product,
+                           let reviews = product.reviews,
+                           !reviews.isEmpty {
+
+                            Text("Customer Reviews")
+                                .font(.headline)
+                                .padding(.top, 20)
+                                .padding(.leading,5)
+
+                            ScrollView(.horizontal, showsIndicators: false) {
+
+                                HStack(spacing: 12) {
+
+                                    ForEach(reviews) { review in
+
+                                        VStack(
+                                            alignment: .leading,
+                                            spacing: 6
+                                        ) {
+
+                                            Text(review.userName)
+                                                .font(.subheadline)
+                                                .fontWeight(.bold)
+
+                                            HStack {
+                                                ForEach(0..<5) { index in
+                                                    Image(
+                                                        systemName: index < review.rating ? "star.fill" : "star"
+                                                    )
+                                                    .foregroundColor(.red)
+                                                }
+                                            }
+
+                                            Text(review.comment)
+                                                .foregroundColor(.gray)
+                                                .font(.subheadline)
+                                        }
+                                        .padding()
+                                        .frame(width: 200) // card width
+                                        .background(Color(.systemGray6))
+                                        .cornerRadius(10)
+                                    }
+
+                                }
+                                .padding(.leading,5)
+                            }
+                        }
                     }
                     .padding()
                     
@@ -193,16 +349,7 @@ struct DetailsPageView: View {
         .navigationBarBackButtonHidden(true)
         .safeAreaInset(edge: .bottom) {
             Button {
-                toastMessage = "Item added to cart"
-                
-                withAnimation {
-                    showToast = true
-                }
-                DispatchQueue.main.asyncAfter(deadline: .now()+2){
-                    withAnimation {
-                        showToast = false
-                    }
-                }
+               
             } label: {
                 Text("Add To Basket")
                     .foregroundColor(.white)

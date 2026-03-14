@@ -45,7 +45,7 @@
 //                        Spacer()
 //                        
 //                        Button {
-//                            selectedTab = 1
+//                            selectedTab = 4
 //                        } label: {
 //                            Image(systemName: "person.crop.circle.fill")
 //                                .resizable()
@@ -121,6 +121,8 @@ struct ExploreView: View {
     @StateObject var viewModel = ExploreViewModel()
     @State private var searchText = ""
     @Binding var selectedTab: Int
+    @AppStorage("userId") var userId: String = ""
+    @EnvironmentObject private var wishlistVM: WishlistViewModel
 
     let columns = [
         GridItem(.flexible()),
@@ -157,7 +159,7 @@ struct ExploreView: View {
                         Spacer()
 
                         Button {
-                            selectedTab = 1
+                            selectedTab = 4
                         } label: {
                             Image(systemName: "person.crop.circle.fill")
                                 .resizable()
@@ -201,15 +203,13 @@ struct ExploreView: View {
                         LazyVGrid(columns: columns, spacing: 20) {
 
                             ForEach(filteredProducts) { product in
-
-                                NavigationLink(
-                                    destination: DetailsPageView(product: product)
-                                ) {
-
-                                    ProductsCard(product: product)
-
+                                ZStack(alignment: .topTrailing) {
+                                    NavigationLink(destination: DetailsPageView(product: product, wishlistVM: wishlistVM)) {
+                                        ProductsCardContent(product: product)
+                                    }
+                                    .buttonStyle(.plain)
+                                    WishlistHeartButton(productId: product.id, userId: userId)
                                 }
-                                .buttonStyle(.plain)
                                 .onAppear {
                                     viewModel.loadMoreProducts(currentItem: product)
                                 }

@@ -10,22 +10,24 @@
 import Foundation
 
 struct ProductDetail: Identifiable {
-    var id = UUID()
+    var id = String()
     let title: String
     let descriptionLines: [String]
     let name: String
     let price: Int
     let imageURL: [String]
     let description: [String]
+    let reviews: [Review]?
 
     init(
-        id: UUID = UUID(),
+        id: String,
         title: String,
         descriptionLines: [String],
         name: String,
         price: Int,
         imageName: [String],
         description: [String]
+        
     ) {
         self.id = id
         self.title = title
@@ -34,26 +36,29 @@ struct ProductDetail: Identifiable {
         self.price = price
         self.imageURL = imageName
         self.description = description
+        self.reviews = []
+        
     }
 
     /// Creates a ProductDetail from a home screen Item (e.g. for navigation from HomeScreenView).
-    init(item: Item) {
-        self.id = UUID()
-        self.title = item.name
-        self.name = item.name
-        self.imageURL = [item.imageName]
-        let numericString = item.price
-            .replacingOccurrences(of: "Rs. ", with: "")
-            .replacingOccurrences(of: ",", with: "")
-            .trimmingCharacters(in: .whitespaces)
-        self.price = Int(numericString) ?? 0
-        self.descriptionLines = []
-        self.description = []
-    }
+//    init(item: Item) {
+//        self.id = UUID()
+//        self.title = item.name
+//        self.name = item.name
+//        self.imageURL = [item.imageName]
+//        let numericString = item.price
+//            .replacingOccurrences(of: "Rs. ", with: "")
+//            .replacingOccurrences(of: ",", with: "")
+//            .trimmingCharacters(in: .whitespaces)
+//        self.price = Int(numericString) ?? 0
+//        self.descriptionLines = []
+//        self.description = []
+//        self.reviews = []
+//    }
 
     /// Creates a ProductDetail from a HomeProduct (API model) for navigation from home sections.
     init(homeProduct: HomeProduct) {
-        self.id = UUID()
+        self.id = homeProduct.id
         self.title = homeProduct.productName
         self.name = homeProduct.productName
         self.descriptionLines = [homeProduct.description]
@@ -62,11 +67,12 @@ struct ProductDetail: Identifiable {
         self.imageURL = homeProduct.productImage.map {
             "https://ucraft.adwaith.space/uploads/product-images/\($0)"
         }
+        self.reviews = []
     }
     
-    init(apiProduct: ProductAPI) {
+    init(apiProduct: ProductAPI, reviews: [Review]?) {
 
-        self.id = UUID()
+        self.id = apiProduct.id
 
         self.title = apiProduct.productName
         self.name = apiProduct.productName
@@ -78,17 +84,20 @@ struct ProductDetail: Identifiable {
 
         let firstImage = apiProduct.productImage.first ?? ""
 
-        self.imageURL = apiProduct.productImage.map {
-            "\(AppConfig.imageBaseURL)\($0)"
+        self.imageURL = apiProduct.productImage.isEmpty ?
+            ["https://yourplaceholderurl.com/placeholder.png"] :
+        apiProduct.productImage.map { "\(AppConfig.imageBaseURL)\($0)"
         }
+        
+        self.reviews = reviews ?? []
     }
 }
-
 
 
 struct ProductDetailResponse: Codable {
     let success: Bool
     let product: ProductAPI
+    let reviews: [Review]?
 }
 
 struct ProductAPI: Codable {
@@ -100,6 +109,7 @@ struct ProductAPI: Codable {
     let quantity: Int
     let status: String
     let productImage: [String]
+    let reviews: [String]?   // IDs only
 
     enum CodingKeys: String, CodingKey {
         case id = "_id"
@@ -110,5 +120,31 @@ struct ProductAPI: Codable {
         case quantity
         case status
         case productImage
+        case reviews
+    }
+}
+
+struct AddReviewRequest: Codable {
+    let email: String
+    let productId: String
+    let rating: Int
+    let comment: String
+}
+
+struct Review: Codable, Identifiable {
+    let id: String
+    let userName: String
+    let userId: String
+    let productId: String
+    let rating: Int
+    let comment: String
+    
+    enum CodingKeys: String, CodingKey {
+        case id = "_id"
+        case userName
+        case userId
+        case productId
+        case rating
+        case comment
     }
 }

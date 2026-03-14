@@ -9,8 +9,11 @@
 import SwiftUI
 
 struct HomeScreenView_: View {
-    
+
     @StateObject private var viewModel = HomeViewModel()
+    @EnvironmentObject private var wishlistVM: WishlistViewModel
+    let userId: String
+
     @Binding var selectedTab: Int
     @State private var navigateToSearch = false
     
@@ -33,7 +36,7 @@ struct HomeScreenView_: View {
                         Spacer()
 
                         Button {
-                            selectedTab = 1
+                            selectedTab = 4
                         } label: {
                             Image(systemName: "person.crop.circle.fill")
                                 .resizable()
@@ -125,9 +128,10 @@ struct HomeScreenView_: View {
                                         .font(.caption)    // smaller
                                         .foregroundColor(.white.opacity(0.8))
                                     
-                                    NavigationLink(
-                                        destination: NewArrivalsview_()
-                                    ) {
+                                    NavigationLink {
+                                        NewArrivalsview_(wishlistVM: wishlistVM)
+                                            .environmentObject(wishlistVM)
+                                    } label: {
                                         Text("Shop Now")
                                             .font(
                                                 .caption2
@@ -162,15 +166,12 @@ struct HomeScreenView_: View {
                                     showsIndicators: false
                                 ) {
                                     HStack(spacing: 15) {
-                                        ForEach(
-                                            viewModel.filteredTrending
-                                        ) { product in
-                                            NavigationLink(
-                                                destination: DetailsPageView(
-                                                    product: product
-                                                )
-                                            ) {
-                                                ProductsCard(product: product)
+                                        ForEach(viewModel.filteredTrending) { product in
+                                            ZStack(alignment: .topTrailing) {
+                                                NavigationLink(destination: DetailsPageView(product: product, wishlistVM: wishlistVM)) {
+                                                    ProductsCardContent(product: product)
+                                                }
+                                                WishlistHeartButton(productId: product.id, userId: userId)
                                             }
                                         }
                                         if viewModel.searchText != "" && viewModel.filteredNewArrivals.isEmpty {
@@ -180,7 +181,7 @@ struct HomeScreenView_: View {
                                         }
                                     }
                                     .padding(.horizontal, 20)
-                                    .padding(.vertical,6)
+                                    .padding(.vertical, 6)
                                 }
                             }
                             // MARK: New Arrivals Section
@@ -200,16 +201,13 @@ struct HomeScreenView_: View {
                                     showsIndicators: false
                                 ) {
                                     HStack(spacing: 15) {
-                                        ForEach(
-                                            viewModel.filteredNewArrivals
-                                        ) { product in
-                                            NavigationLink(
-                                                destination: DetailsPageView(
-                                                    product: product
-                                                )
-                                            ) {
-                                                ProductsCard(product: product)
-                                                    .padding(.vertical,5)
+                                        ForEach(viewModel.filteredNewArrivals) { product in
+                                            ZStack(alignment: .topTrailing) {
+                                                NavigationLink(destination: DetailsPageView(product: product, wishlistVM: wishlistVM)) {
+                                                    ProductsCardContent(product: product)
+                                                        .padding(.vertical, 5)
+                                                }
+                                                WishlistHeartButton(productId: product.id, userId: userId)
                                             }
                                         }
                                         if viewModel.searchText != "" && viewModel.filteredNewArrivals.isEmpty {
@@ -238,16 +236,13 @@ struct HomeScreenView_: View {
                                     showsIndicators: false
                                 ) {
                                     HStack(spacing: 15) {
-                                        ForEach(
-                                            viewModel.filteredFeatured
-                                        ) { product in
-                                            NavigationLink(
-                                                destination: DetailsPageView(
-                                                    product: product
-                                                )
-                                            ) {
-                                                ProductsCard(product: product)
-                                                    .padding(.vertical, 5)
+                                        ForEach(viewModel.filteredFeatured) { product in
+                                            ZStack(alignment: .topTrailing) {
+                                                NavigationLink(destination: DetailsPageView(product: product, wishlistVM: wishlistVM)) {
+                                                    ProductsCardContent(product: product)
+                                                        .padding(.vertical, 5)
+                                                }
+                                                WishlistHeartButton(productId: product.id, userId: userId)
                                             }
                                         }
                                         if viewModel.searchText != "" && viewModel.filteredNewArrivals.isEmpty {
@@ -275,68 +270,79 @@ struct HomeScreenView_: View {
         .ignoresSafeArea(edges: .bottom)
         .onAppear {
             viewModel.fetchHomeData()
+            if !userId.isEmpty {
+                Task {
+                    await wishlistVM.fetchWishlist(userId: userId)
+                }
+            }
         }
-
     }
 }
 
-//#Preview {
-//    HomeScreenView_()
-//}
-
-
-struct ProductsCard: View {
-    
+/// Card content only (image, name, price). Use with WishlistHeartButton in a ZStack so heart tap doesn’t trigger NavigationLink.
+struct ProductsCardContent: View {
     let product: HomeProduct
-    
+
     var body: some View {
         VStack(spacing: 8) {
-            
             if let firstImage = product.productImage.first {
-                
-                let fullURL = "https://ucraft.adwaith.space/uploads/product-images/\(firstImage)"
-                    
-                
-                AsyncImage(
-                    url: URL(string: fullURL)
-                ) { image in
-                    image
-                        .resizable()
-                        .scaledToFit()
-                } placeholder: {
-                    ProgressView()
-                }
+                let fullURL = AppConfig.imageBaseURL + firstImage
+                AsyncImage(url: URL(string: fullURL)) { image in
+                    image.resizable().scaledToFit()
+                } placeholder: { ProgressView() }
                 .frame(width: 159, height: 146)
                 .clipped()
                 .cornerRadius(18)
-                .onAppear {
-                    print("IMAGE URL:", fullURL)
-                }
             }
-            
             VStack(spacing: 4) {
                 Text(product.productName)
                     .font(.caption)
                     .bold()
                     .foregroundColor(.black)
-                    .multilineTextAlignment(.center)
                     .lineLimit(2)
-                    .frame(height: 32)
-                
-                Text("Rs. \(product.salePrice, specifier : "%.0f")")
+                Text("Rs. \(product.salePrice, specifier: "%.0f")")
                     .font(.subheadline)
                     .bold()
                     .foregroundColor(Color.custom)
             }
-            .padding(.horizontal, 6)
         }
-
-        .padding()
-        .frame(width: 170, height: 220)
-        .background(
-            RoundedRectangle(cornerRadius: 18)
-                .fill(Color(.systemGray4))
-        )
     }
 }
 
+/// Heart button for wishlist; use on top of card in ZStack so tap doesn’t trigger NavigationLink.
+struct WishlistHeartButton: View {
+    @EnvironmentObject private var wishlistVM: WishlistViewModel
+    let productId: String
+    let userId: String
+
+    var body: some View {
+        Button {
+            guard !userId.isEmpty else { return }
+            Task {
+                await wishlistVM.addToWishlist(userId: userId, productId: productId)
+            }
+        } label: {
+            Image(systemName: wishlistVM.isFavorite(productId: productId) ? "heart.fill" : "heart")
+                .foregroundColor(.black)
+                .padding(8)
+                .background(Color.white)
+                .clipShape(Circle())
+        }
+        .buttonStyle(.plain)
+        .padding(10)
+    }
+}
+
+/// Full card with heart; use when you don’t need NavigationLink (e.g. in a list that isn’t a link).
+struct ProductsCard: View {
+    let product: HomeProduct
+    @EnvironmentObject var wishlistVM: WishlistViewModel
+    let userId: String
+
+    var body: some View {
+        ZStack(alignment: .topTrailing) {
+            ProductsCardContent(product: product)
+            WishlistHeartButton(productId: product.id, userId: userId)
+        }
+    }
+}

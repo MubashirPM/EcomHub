@@ -17,6 +17,7 @@ enum AppConfig {
 enum EndPoints {
     // Auth EndPoints
     static let signIn = "/login"
+    
     static let signUp = "/signup"
     
     // GoogleLogin
@@ -45,5 +46,21 @@ enum EndPoints {
     static let explore = "/explore"
    
     static let addReview = "/addReview"
+    
+    static let addToCart = "/cart/add"
+
+    static let removeFromCart = "/cart/remove"
+
+    static func getCart(userId: String) -> String {
+            "/cart/\(userId)"
+        }
+    
+    static func getWishlist(userId: String) -> String {
+        return "/wishlist/\(userId)"
+    }
+
+    static let addToWishlist = "/wishlist/add"
+    
+    static let removeFromWishlist = "/wishlist/remove"
 }
 

@@ -11,6 +11,8 @@ struct NewArrivalsview_: View {
 
     @StateObject private var viewModel = NewArrivalsViewModel()
     @Environment(\.dismiss) var dismiss
+    @AppStorage("userId") var userId: String = ""
+    let wishlistVM: WishlistViewModel
 
     var body: some View {
         ScrollView {
@@ -84,8 +86,11 @@ struct NewArrivalsview_: View {
                             GridItem(.flexible())
                         ]) {
                             ForEach(viewModel.filteredProducts) { product in
-                                NavigationLink(destination: DetailsPageView(product: product)) {
-                                    ProductsCard(product: product)
+                                ZStack(alignment: .topTrailing) {
+                                    NavigationLink(destination: DetailsPageView(product: product, wishlistVM: wishlistVM)) {
+                                        ProductsCardContent(product: product)
+                                    }
+                                    WishlistHeartButton(productId: product.id, userId: userId)
                                 }
                             }
                         }
@@ -105,5 +110,7 @@ struct NewArrivalsview_: View {
 }
 
 #Preview {
-    NewArrivalsview_()
+    let wishlistVM = WishlistViewModel()
+    return NewArrivalsview_(wishlistVM: wishlistVM)
+        .environmentObject(wishlistVM)
 }

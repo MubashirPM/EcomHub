@@ -18,6 +18,9 @@ class ProductDetailViewModel: ObservableObject {
     @Published var showProductDetail: Bool = false
     @Published var isLoading = false
     @Published var errorMessage: String?
+    @Published var selectedRating: Int = 0
+    @Published var reviewComment: String = ""
+    
 
     let sizes = ["S", "M", "L", "XL"]
 
@@ -33,8 +36,10 @@ class ProductDetailViewModel: ObservableObject {
 
         guard let url = URL(string: "\(AppConfig.baseURL)\(EndPoints.productDetails(id: id))") else {
             errorMessage = "Invalid URL"
+            isLoading = false
             return
         }
+        print("Product Details URL:", url.absoluteString)
 
         do {
             let (data, response) = try await URLSession.shared.data(from: url)
@@ -52,7 +57,11 @@ class ProductDetailViewModel: ObservableObject {
             
             debugPrint("Decoded Product :",decoded.product)
 
-            product = ProductDetail(apiProduct: decoded.product)
+            product = ProductDetail(
+                apiProduct: decoded.product,
+                reviews: decoded.reviews
+            )
+            
             debugPrint("Final Product:",product)
             isLoading = false
 
@@ -81,5 +90,49 @@ class ProductDetailViewModel: ObservableObject {
     // MARK: - Toggle Description
     func toggleDetailSection() {
         showProductDetail.toggle()
+    }
+    
+    
+    func addReview(email: String, productId: String, rating: Int,comment : String) async {
+        
+        guard let url = URL(string: "\(AppConfig.baseURL)\(EndPoints.addReview)") else {
+            return
+        }
+        
+        let review = AddReviewRequest(
+            email: email,
+            productId: productId,
+            rating: rating,
+            comment: comment
+            
+        )
+        print("Email:", email)
+        print("Product ID:", productId)
+        print("Rating:", rating)
+        
+        do {
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request
+                .setValue(
+                    "application/json",
+                    forHTTPHeaderField: "Content-Type"
+                )
+            
+            request.httpBody = try JSONEncoder().encode(review)
+            
+            let (_, response) = try await URLSession.shared.data(for: request)
+            
+            if let httpResponse = response as? HTTPURLResponse,
+               httpResponse.statusCode == 200 {
+                print("Review added successfully")
+                
+                // Refresh product to load new review
+                await fetchProduct(id: productId)
+            }
+            
+        } catch {
+            print(error.localizedDescription)
+        }
     }
 }

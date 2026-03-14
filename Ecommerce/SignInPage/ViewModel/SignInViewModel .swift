@@ -88,6 +88,17 @@ class SignInViewModel: ObservableObject {
                 
                 if decoded.success {
                     self.user = decoded.user
+                    
+                    if let email = decoded.user?.email {
+                           UserDefaults.standard.set(email, forKey: "userEmail")
+                           print("Saved Email:", email)
+                       }
+                    
+                    if let id = decoded.user?.id {
+                          UserDefaults.standard.set(id, forKey: "userId")
+                          print("Saved UserId:", id)
+                      }
+                    
                     print("Login success")
                     print("isLoggedIn before:", self.isLoggedIn)
                     self.isLoggedIn = true
