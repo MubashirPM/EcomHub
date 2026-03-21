@@ -12,6 +12,7 @@ enum AppConfig {
         "https://ucraft.adwaith.space/api"
     }
     static let imageBaseURL = "https://ucraft.adwaith.space/uploads/product-images/"
+    static let profileImageBaseURL = "https://ucraft.adwaith.space/uploads/profile/"
 }
 
 enum EndPoints {
@@ -60,7 +61,19 @@ enum EndPoints {
     }
 
     static let addToWishlist = "/wishlist/add"
-    
+
     static let removeFromWishlist = "/wishlist/remove"
+
+    static func getProfile(userId: String) -> String {
+        "/profile/\(userId)"
+    }
+
+    static func getAddress(userId: String) -> String {
+        "/address/\(userId)"
+    }
+
+    static func addAddress(userId: String) -> String {
+        "/address/add/\(userId)"
+    }
 }
 

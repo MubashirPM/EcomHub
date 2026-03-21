@@ -351,7 +351,7 @@ struct DetailsPageView: View {
             Button {
                
             } label: {
-                Text("Add To Basket")
+                Text("Buy Now")
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .padding()
@@ -383,3 +383,4 @@ struct DetailsPageView: View {
         }
     }
 }
+  

@@ -11,6 +11,7 @@ struct CustomTabBar: View {
     @State private var selectedTab = 0
     @AppStorage("userId") var userId: String = ""
     @StateObject private var wishlistVM = WishlistViewModel()
+    @StateObject private var profileVM = ProfileViewModel()
 
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -60,6 +61,14 @@ struct CustomTabBar: View {
             .tag(4)
         }
         .environmentObject(wishlistVM)
+        .environmentObject(profileVM)
         .accentColor(.custom)
+        .onAppear {
+            if !userId.isEmpty {
+                Task {
+                    await profileVM.fetchProfile(userId: userId)
+                }
+            }
+        }
     }
 }

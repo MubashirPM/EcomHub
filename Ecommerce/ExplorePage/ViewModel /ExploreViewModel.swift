@@ -16,7 +16,7 @@ class ExploreViewModel: ObservableObject {
     @Published var isLoading = false
 
     private var page = 1
-    private let limit = 11
+    private let limit = 3
 
     func fetchExploreProducts() {
 

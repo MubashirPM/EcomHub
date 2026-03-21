@@ -115,7 +115,7 @@ struct SignUpView: View {
                             Text(error)
                                 .foregroundColor(.red)
                                 .font(.footnote)
-                           
+                                .multilineTextAlignment(.center)
                         }
                         
                         // Sign up button

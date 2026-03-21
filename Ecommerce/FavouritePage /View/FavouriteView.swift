@@ -74,7 +74,7 @@ struct FavouriteView: View {
                             LazyVGrid(columns: columns, spacing: 16) {
                                 ForEach(wishlistVM.wishlistProducts) { product in
                                     NavigationLink(destination: DetailsPageView(product: product, wishlistVM: wishlistVM)) {
-                                        FavouriteProductCard(product: product)
+                                        ProductsCardContent(product: product)
                                     }
                                     .buttonStyle(.plain)
                                 }
@@ -93,67 +93,5 @@ struct FavouriteView: View {
                 }
             }
         }
-    }
-}
-
-private struct FavouriteProductCard: View {
-
-    let product: HomeProduct
-
-    private var imageURL: URL? {
-        guard let first = product.productImage.first, !first.isEmpty else { return nil }
-        let trimmed = first.trimmingCharacters(in: .whitespacesAndNewlines)
-        if trimmed.lowercased().hasPrefix("http") {
-            return URL(string: trimmed)
-        }
-        let path = trimmed.hasPrefix("/") ? String(trimmed.dropFirst()) : trimmed
-        let full = AppConfig.imageBaseURL.hasSuffix("/") ? AppConfig.imageBaseURL + path : AppConfig.imageBaseURL + "/" + path
-        return URL(string: full)
-    }
-
-    var body: some View {
-        VStack(spacing: 8) {
-            Group {
-                if let url = imageURL {
-                    AsyncImage(url: url) { phase in
-                        switch phase {
-                        case .success(let image):
-                            image
-                                .resizable()
-                                .scaledToFit()
-                        case .failure:
-                            Image("ErrorImage")
-                                .resizable()
-                                .scaledToFit()
-                        case .empty:
-                            ProgressView()
-                        @unknown default:
-                            ProgressView()
-                        }
-                    }
-                } else {
-                    Image("ErrorImage")
-                        .resizable()
-                        .scaledToFit()
-                }
-            }
-            .frame(height: 140)
-            .clipped()
-            .cornerRadius(12)
-            Text(product.productName)
-                .font(.caption)
-                .fontWeight(.medium)
-                .foregroundColor(.black)
-                .lineLimit(2)
-                .multilineTextAlignment(.center)
-            Text("Rs. \(product.salePrice, specifier: "%.0f")")
-                .font(.subheadline)
-                .fontWeight(.bold)
-                .foregroundColor(Color.custom)
-        }
-        .padding(12)
-        .background(Color.white)
-        .cornerRadius(16)
-        .shadow(radius: 2)
     }
 }

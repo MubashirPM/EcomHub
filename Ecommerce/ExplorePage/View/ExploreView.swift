@@ -161,11 +161,7 @@ struct ExploreView: View {
                         Button {
                             selectedTab = 4
                         } label: {
-                            Image(systemName: "person.crop.circle.fill")
-                                .resizable()
-                                .scaledToFit()
-                                .foregroundColor(.yellow)
-                                .frame(width: 50, height: 50)
+                            ProfileAvatarView()
                         }
                     }
                     .padding(.horizontal, 20)

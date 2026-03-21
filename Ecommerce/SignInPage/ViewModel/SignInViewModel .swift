@@ -163,6 +163,7 @@ class SignInViewModel: ObservableObject {
             
             guard let idToken = result.user.idToken?.tokenString else {
                 self.errorMessage = "Failed to get ID token"
+                isLoading = false
                 return
             }
             
@@ -170,35 +171,99 @@ class SignInViewModel: ObservableObject {
             
         } catch {
             print("Google Sign In Error:", error.localizedDescription)
+            errorMessage = "Google sign in failed."
         }
+        isLoading = false
     }
     
     
     func sendTokenToBackend(idToken: String) async throws {
-        
+
         guard let url = URL(string: "\(AppConfig.baseURL)/auth/google") else {
-            
+            isLoading = false
             return
         }
-        
+
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
+
         let body = ["idToken": idToken]
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
-        
+
         do {
-            let (_, response) = try await URLSession.shared.data(for: request)
-            
-            if let httpResponse = response as? HTTPURLResponse,
-               httpResponse.statusCode == 200 {
-                
-                self.isLoggedIn = true
+            let (data, response) = try await URLSession.shared.data(for: request)
+            print(String(data: data, encoding: .utf8) ?? "")
+
+            guard let httpResponse = response as? HTTPURLResponse else {
+                isLoading = false
+                return
             }
-            
+
+            if httpResponse.statusCode == 200 {
+                let extracted = extractUserIdAndEmailFromGoogleResponse(data: data)
+                if let userId = extracted.userId, !userId.isEmpty {
+                    UserDefaults.standard.set(userId, forKey: "userId")
+                    UserDefaults.standard.set("", forKey: UserDefaultsKeys.profileImageURL)
+                    if let userEmail = extracted.email {
+                        UserDefaults.standard.set(userEmail, forKey: "userEmail")
+                    }
+                    self.isLoggedIn = true
+                } else {
+                    errorMessage = "Could not get user from Google sign in. Please try again."
+                }
+            } else {
+                errorMessage = "Google sign in failed. Please try again."
+            }
         } catch {
             print("Backend error:", error.localizedDescription)
+            errorMessage = "Unable to sign in with Google."
         }
+        isLoading = false
+    }
+
+    /// Tries decoded AuthResponse first, then falls back to raw JSON for common backend shapes.
+    private func extractUserIdAndEmailFromGoogleResponse(data: Data) -> (userId: String?, email: String?) {
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+
+        if let authResponse = try? decoder.decode(AuthResponse.self, from: data),
+           let user = authResponse.user {
+            return (user.id, user.email)
+        }
+
+        guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            return (nil, nil)
+        }
+
+        var userId: String?
+        var email: String?
+
+        func stringFrom(_ value: Any?) -> String? {
+            if let s = value as? String, !s.isEmpty { return s }
+            if let n = value as? Int { return String(n) }
+            if let n = value as? NSNumber { return n.stringValue }
+            return nil
+        }
+
+        userId = stringFrom(json["userId"]) ?? stringFrom(json["user_id"]) ?? stringFrom(json["id"]) ?? stringFrom(json["_id"])
+
+        if let userDict = json["user"] as? [String: Any] {
+            if userId == nil { userId = stringFrom(userDict["_id"]) ?? stringFrom(userDict["id"]) ?? stringFrom(userDict["user_id"]) }
+            if email == nil, let e = userDict["email"] as? String { email = e }
+        }
+
+        if let dataDict = json["data"] as? [String: Any] {
+            if userId == nil { userId = stringFrom(dataDict["_id"]) ?? stringFrom(dataDict["id"]) ?? stringFrom(dataDict["userId"]) ?? stringFrom(dataDict["user_id"]) }
+            if email == nil, let e = dataDict["email"] as? String { email = e }
+            if userId == nil, let userDict = dataDict["user"] as? [String: Any] {
+                userId = stringFrom(userDict["_id"]) ?? stringFrom(userDict["id"]) ?? stringFrom(userDict["user_id"])
+                if email == nil, let e = userDict["email"] as? String { email = e }
+            }
+        }
+
+        if email == nil, let e = json["email"] as? String { email = e }
+
+        return (userId, email)
     }
 }
