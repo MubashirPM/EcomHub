@@ -204,7 +204,7 @@ struct ExploreView: View {
                                         ProductsCardContent(product: product)
                                     }
                                     .buttonStyle(.plain)
-                                    WishlistHeartButton(productId: product.id, userId: userId)
+                                    WishlistHeartButton(productId: product.id, userId: userId, productSnapshot: product)
                                 }
                                 .onAppear {
                                     viewModel.loadMoreProducts(currentItem: product)

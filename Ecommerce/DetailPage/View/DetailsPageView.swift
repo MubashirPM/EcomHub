@@ -117,10 +117,10 @@ struct DetailsPageView: View {
                             .font(.title2)
                             .fontWeight(.bold)
 
-                        Text("$\(product.price)")
+                        Text("Rs.\(product.price)")
                             .font(.title2)
                             .fontWeight(.bold)
-                            .foregroundColor(.red)
+                            .foregroundColor(Color.custom)
 
                         // Quantity
                         HStack {
@@ -136,13 +136,15 @@ struct DetailsPageView: View {
                             Text("\(viewModel.quantity)")
                                 .font(.title2)
                                 .frame(width: 40)
+                                .bold()
 
                             Button {
                                 viewModel.increaseQuantity()
                             } label: {
                                 Image(systemName: "plus")
                                     .font(.title2)
-                                    .foregroundColor(.red)
+                                    .foregroundColor(Color.custom)
+                                    .bold()
                             }
 
                             Spacer()
@@ -204,6 +206,7 @@ struct DetailsPageView: View {
                             HStack {
                                 Text("Product Detail")
                                     .foregroundStyle(.black)
+                                    .bold()
 
                                 Spacer()
 

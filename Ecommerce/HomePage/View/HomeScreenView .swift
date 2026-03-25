@@ -167,7 +167,7 @@ struct HomeScreenView_: View {
                                                 NavigationLink(destination: DetailsPageView(product: product, wishlistVM: wishlistVM)) {
                                                     ProductsCardContent(product: product)
                                                 }
-                                                WishlistHeartButton(productId: product.id, userId: userId)
+                                                WishlistHeartButton(productId: product.id, userId: userId, productSnapshot: product)
                                             }
                                         }
                                         if viewModel.searchText != "" && viewModel.filteredNewArrivals.isEmpty {
@@ -203,7 +203,7 @@ struct HomeScreenView_: View {
                                                     ProductsCardContent(product: product)
                                                         .padding(.vertical, 5)
                                                 }
-                                                WishlistHeartButton(productId: product.id, userId: userId)
+                                                WishlistHeartButton(productId: product.id, userId: userId, productSnapshot: product)
                                             }
                                         }
                                         if viewModel.searchText != "" && viewModel.filteredNewArrivals.isEmpty {
@@ -238,7 +238,7 @@ struct HomeScreenView_: View {
                                                     ProductsCardContent(product: product)
                                                         .padding(.vertical, 5)
                                                 }
-                                                WishlistHeartButton(productId: product.id, userId: userId)
+                                                WishlistHeartButton(productId: product.id, userId: userId, productSnapshot: product)
                                             }
                                         }
                                         if viewModel.searchText != "" && viewModel.filteredNewArrivals.isEmpty {
@@ -279,16 +279,46 @@ struct HomeScreenView_: View {
 struct ProductsCardContent: View {
     let product: HomeProduct
 
+    private var imageURL: URL? {
+        guard let firstImage = product.productImage.first, !firstImage.isEmpty else { return nil }
+        let trimmed = firstImage.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.lowercased().hasPrefix("http") {
+            let encoded = trimmed.addingPercentEncoding(withAllowedCharacters: .urlFragmentAllowed) ?? trimmed
+            return URL(string: encoded)
+        }
+        let path = trimmed.hasPrefix("/") ? String(trimmed.dropFirst()) : trimmed
+        let base = AppConfig.imageBaseURL.hasSuffix("/") ? AppConfig.imageBaseURL : AppConfig.imageBaseURL + "/"
+        let encodedPath = path.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? path
+        return URL(string: base + encodedPath)
+    }
+
     var body: some View {
         VStack(spacing: 8) {
-            if let firstImage = product.productImage.first {
-                let fullURL = AppConfig.imageBaseURL + firstImage
-                AsyncImage(url: URL(string: fullURL)) { image in
-                    image.resizable().scaledToFit()
-                } placeholder: { ProgressView() }
+            if let imageURL {
+                AsyncImage(url: imageURL) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image.resizable().scaledToFit()
+                    case .failure:
+                        Image("ErrorImage")
+                            .resizable()
+                            .scaledToFit()
+                    case .empty:
+                        ProgressView()
+                    @unknown default:
+                        ProgressView()
+                    }
+                }
                 .frame(width: 159, height: 146)
                 .clipped()
                 .cornerRadius(18)
+            } else {
+                Image("ErrorImage")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 159, height: 146)
+                    .clipped()
+                    .cornerRadius(18)
             }
             VStack(spacing: 4) {
                 Text(product.productName)
@@ -310,12 +340,13 @@ struct WishlistHeartButton: View {
     @EnvironmentObject private var wishlistVM: WishlistViewModel
     let productId: String
     let userId: String
+    var productSnapshot: HomeProduct? = nil
 
     var body: some View {
         Button {
             guard !userId.isEmpty else { return }
             Task {
-                await wishlistVM.addToWishlist(userId: userId, productId: productId)
+                await wishlistVM.addToWishlist(userId: userId, productId: productId, productSnapshot: productSnapshot)
             }
         } label: {
             Image(systemName: wishlistVM.isFavorite(productId: productId) ? "heart.fill" : "heart")
@@ -338,7 +369,7 @@ struct ProductsCard: View {
     var body: some View {
         ZStack(alignment: .topTrailing) {
             ProductsCardContent(product: product)
-            WishlistHeartButton(productId: product.id, userId: userId)
+            WishlistHeartButton(productId: product.id, userId: userId, productSnapshot: product)
         }
     }
 }

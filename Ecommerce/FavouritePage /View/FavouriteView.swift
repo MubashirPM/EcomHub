@@ -12,8 +12,8 @@ struct FavouriteView: View {
     @EnvironmentObject private var wishlistVM: WishlistViewModel
 
     private let columns = [
-        GridItem(.flexible()),
-        GridItem(.flexible())
+        GridItem(.flexible(), spacing: 20),
+        GridItem(.flexible(), spacing: 20)
     ]
 
     var body: some View {
@@ -71,12 +71,16 @@ struct FavouriteView: View {
                         .padding(.bottom, 60)
                     } else {
                         ScrollView {
-                            LazyVGrid(columns: columns, spacing: 16) {
+                            LazyVGrid(columns: columns, spacing: 20) {
                                 ForEach(wishlistVM.wishlistProducts) { product in
-                                    NavigationLink(destination: DetailsPageView(product: product, wishlistVM: wishlistVM)) {
-                                        ProductsCardContent(product: product)
+                                    ZStack(alignment: .topTrailing) {
+                                        NavigationLink(destination: DetailsPageView(product: product, wishlistVM: wishlistVM)) {
+                                            ProductsCardContent(product: product)
+                                                .padding(.vertical, 5)
+                                        }
+                                        .buttonStyle(.plain)
+                                        WishlistHeartButton(productId: product.id, userId: userId, productSnapshot: product)
                                     }
-                                    .buttonStyle(.plain)
                                 }
                             }
                             .padding()

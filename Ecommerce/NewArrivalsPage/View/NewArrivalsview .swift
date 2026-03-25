@@ -86,7 +86,7 @@ struct NewArrivalsview_: View {
                                     NavigationLink(destination: DetailsPageView(product: product, wishlistVM: wishlistVM)) {
                                         ProductsCardContent(product: product)
                                     }
-                                    WishlistHeartButton(productId: product.id, userId: userId)
+                                    WishlistHeartButton(productId: product.id, userId: userId, productSnapshot: product)
                                 }
                             }
                         }

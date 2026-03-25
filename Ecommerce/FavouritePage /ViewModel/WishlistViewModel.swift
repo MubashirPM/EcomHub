@@ -34,8 +34,15 @@ class WishlistViewModel: ObservableObject {
             let decoder = JSONDecoder()
             decoder.keyDecodingStrategy = .convertFromSnakeCase
             let decoded = try decoder.decode(WishlistResponse.self, from: data)
-            self.wishlistProducts = decoded.wishlist
-            self.wishlistProductIds = decoded.wishlist.map { $0.id }
+            let existingById = Dictionary(uniqueKeysWithValues: wishlistProducts.map { ($0.id, $0) })
+            let mergedProducts = decoded.wishlist.map { product in
+                if product.productImage.isEmpty, let existing = existingById[product.id], !existing.productImage.isEmpty {
+                    return existing
+                }
+                return product
+            }
+            self.wishlistProducts = mergedProducts
+            self.wishlistProductIds = mergedProducts.map { $0.id }
         } catch {
             print("Wishlist fetch error:", error)
             wishlistProductIds = []
@@ -85,7 +92,7 @@ class WishlistViewModel: ObservableObject {
 
     // MARK: - Toggle (add or remove one product)
 
-    func addToWishlist(userId: String, productId: String) async {
+    func addToWishlist(userId: String, productId: String, productSnapshot: HomeProduct? = nil) async {
         guard !userId.isEmpty else { return }
 
         let isCurrentlyFavorite = wishlistProductIds.contains(productId)
@@ -100,6 +107,9 @@ class WishlistViewModel: ObservableObject {
             success = await addToWishlistAPI(userId: userId, productId: productId)
             if success {
                 wishlistProductIds.append(productId)
+                if let productSnapshot, !wishlistProducts.contains(where: { $0.id == productSnapshot.id }) {
+                    wishlistProducts.append(productSnapshot)
+                }
             }
         }
         if success {
