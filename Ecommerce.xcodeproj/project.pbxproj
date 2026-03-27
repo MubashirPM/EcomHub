@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A13FF46B2F769C4800B7F60A /* RazorpayCheckout in Frameworks */ = {isa = PBXBuildFile; productRef = A13FF46A2F769C4800B7F60A /* RazorpayCheckout */; };
 		A1C843EA2F51F0F0005EB54C /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = A1C843E92F51F0F0005EB54C /* GoogleSignIn */; };
 		A1C843EC2F51F0F0005EB54C /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = A1C843EB2F51F0F0005EB54C /* GoogleSignInSwift */; };
 		A1F4C21D2F3A3CE300D73F86 /* Pacifico-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A1F4C21C2F3A3CE300D73F86 /* Pacifico-Regular.ttf */; };
@@ -33,6 +34,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A1C843EA2F51F0F0005EB54C /* GoogleSignIn in Frameworks */,
+				A13FF46B2F769C4800B7F60A /* RazorpayCheckout in Frameworks */,
 				A1C843EC2F51F0F0005EB54C /* GoogleSignInSwift in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -89,6 +91,7 @@
 			packageProductDependencies = (
 				A1C843E92F51F0F0005EB54C /* GoogleSignIn */,
 				A1C843EB2F51F0F0005EB54C /* GoogleSignInSwift */,
+				A13FF46A2F769C4800B7F60A /* RazorpayCheckout */,
 			);
 			productName = Ecommerce;
 			productReference = A1F4C20D2F3A3B7F00D73F86 /* Ecommerce.app */;
@@ -120,6 +123,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				A1C843E82F51F0F0005EB54C /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
+				A13FF4692F769C4800B7F60A /* XCRemoteSwiftPackageReference "razorpay-pod" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = A1F4C20E2F3A3B7F00D73F86 /* Products */;
@@ -364,6 +368,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		A13FF4692F769C4800B7F60A /* XCRemoteSwiftPackageReference "razorpay-pod" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/razorpay/razorpay-pod";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.5.3;
+			};
+		};
 		A1C843E82F51F0F0005EB54C /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
@@ -375,6 +387,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		A13FF46A2F769C4800B7F60A /* RazorpayCheckout */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A13FF4692F769C4800B7F60A /* XCRemoteSwiftPackageReference "razorpay-pod" */;
+			productName = RazorpayCheckout;
+		};
 		A1C843E92F51F0F0005EB54C /* GoogleSignIn */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = A1C843E82F51F0F0005EB54C /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;

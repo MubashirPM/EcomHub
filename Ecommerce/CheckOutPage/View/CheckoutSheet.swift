@@ -74,7 +74,7 @@ struct CheckoutSheet: View {
                 
                 Spacer()
                 
-                Text("$\(totalPrice)")
+                Text("Rs.\(totalPrice)")
                     .foregroundColor(.black)
                     .fontWeight(.semibold)
                                 

@@ -12,6 +12,10 @@ struct CartView: View {
 
     @AppStorage("userId") private var userId: String = ""
     @StateObject private var viewModel = CartViewModel()
+    
+    private var roundedTotalPrice: Int {
+        Int(viewModel.totalPrice.rounded())
+    }
 
     var body: some View {
         
@@ -67,7 +71,7 @@ struct CartView: View {
                         
                         Spacer()
                         
-                        Text("$\(viewModel.totalPrice, specifier: "%.2f")")
+                        Text("Rs.\(viewModel.totalPrice, specifier: "%.2f")")
                             .foregroundColor(.white)
                     }
                     .padding()
@@ -77,26 +81,13 @@ struct CartView: View {
                 .padding()
             }
             
-            // Checkout overlay
-            if viewModel.showCheckout {
-                
-                Color.black.opacity(0.4)
-                    .ignoresSafeArea()
-                    .onTapGesture {
-                        viewModel.showCheckout = false
-                    }
-                
-                VStack {
-                    Spacer()
-                    
-                    Text("Checkout")
-                        .padding()
-                        .background(.white)
-                        .cornerRadius(12)
-                }
-            }
         }
-        
+        .sheet(isPresented: $viewModel.showCheckout) {
+            CheckoutSheet(totalPrice: roundedTotalPrice, isPresented: $viewModel.showCheckout)
+                .presentationDetents([.height(430)])
+                .presentationDragIndicator(.hidden)
+                .presentationCornerRadius(30)
+        }
         .task {
             if !userId.isEmpty {
                 await viewModel.fetchCart(userId: userId)
@@ -168,7 +159,7 @@ struct CartItemRow: View {
                 
                 Spacer()
                 
-                Text("$\(item.productId.salePrice, specifier: "%.2f")")
+                Text("Rs.\(item.productId.salePrice, specifier: "%.2f")")
                     .font(.headline)
             }
         }
