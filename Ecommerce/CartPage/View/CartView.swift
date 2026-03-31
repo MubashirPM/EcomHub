@@ -12,6 +12,7 @@ struct CartView: View {
 
     @AppStorage("userId") private var userId: String = ""
     @StateObject private var viewModel = CartViewModel()
+    @State private var showOrderAccepted = false
     
     private var roundedTotalPrice: Int {
         Int(viewModel.totalPrice.rounded())
@@ -83,10 +84,29 @@ struct CartView: View {
             
         }
         .sheet(isPresented: $viewModel.showCheckout) {
-            CheckoutSheet(totalPrice: roundedTotalPrice, isPresented: $viewModel.showCheckout)
-                .presentationDetents([.height(430)])
-                .presentationDragIndicator(.hidden)
-                .presentationCornerRadius(30)
+            CheckoutSheet(
+                totalPrice: roundedTotalPrice,
+                isPresented: $viewModel.showCheckout,
+                onPaymentVerified: {
+                    Task { @MainActor in
+                        await viewModel.clearCartAfterSuccessfulPayment(userId: userId)
+                    }
+                    showOrderAccepted = true
+                }
+            )
+            .presentationDetents([.height(430)])
+            .presentationDragIndicator(.hidden)
+            .presentationCornerRadius(30)
+        }
+        .fullScreenCover(isPresented: $showOrderAccepted) {
+            OrderAcceptView {
+                showOrderAccepted = false
+                Task {
+                    if !userId.isEmpty {
+                        await viewModel.fetchCart(userId: userId)
+                    }
+                }
+            }
         }
         .task {
             if !userId.isEmpty {

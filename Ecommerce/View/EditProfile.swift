@@ -16,6 +16,8 @@ struct EditProfile: View {
     @State private var fullName = ""
     @State private var phoneNumber = ""
     @State private var email = ""
+    /// Filename for `profileImage` in `POST /profile/edit/{userId}` (e.g. from existing profile).
+    @State private var profileImageFilename = ""
 
     var body: some View {
         ZStack {
@@ -28,11 +30,49 @@ struct EditProfile: View {
                 VStack(alignment: .leading, spacing: 18) {
                     CustomField(title: "Full Name", text: $fullName)
                     CustomField(title: "Phone Number", text: $phoneNumber)
-                    CustomField(title: "Email", text: $email)
+                    emailReadOnlySection
                 }
                 .padding(.horizontal)
 
+                if let err = viewModel.errorMessage {
+                    Text(err)
+                        .font(.footnote)
+                        .foregroundStyle(.red)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal)
+                }
+
                 Spacer()
+
+                Button {
+                    Task {
+                        let ok = await viewModel.updateProfile(
+                            userId: userId,
+                            fullName: fullName,
+                            phone: phoneNumber,
+                            profileImageFilename: profileImageFilename
+                        )
+                        if ok {
+                            dismiss()
+                        }
+                    }
+                } label: {
+                    Group {
+                        if viewModel.isSaving {
+                            ProgressView()
+                                .tint(.white)
+                        } else {
+                            Text("Save")
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.custom)
+                    .foregroundStyle(.white)
+                    .cornerRadius(15)
+                }
+                .disabled(viewModel.isSaving || userId.isEmpty)
+                .padding(.horizontal)
 
                 Button {
                     dismiss()
@@ -41,7 +81,7 @@ struct EditProfile: View {
                         .foregroundColor(.black)
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color.custom)
+                        .background(Color(.systemGray5))
                         .cornerRadius(15)
                 }
                 .padding(.horizontal)
@@ -56,6 +96,19 @@ struct EditProfile: View {
         }
         .onChange(of: viewModel.user) { _, _ in
             loadProfileIntoFields()
+        }
+    }
+
+    private var emailReadOnlySection: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("Email")
+                .font(.subheadline)
+            Text(email.isEmpty ? "—" : email)
+                .padding()
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color.green.opacity(0.15))
+                .cornerRadius(10)
+                .foregroundStyle(.primary)
         }
     }
 
@@ -92,13 +145,6 @@ struct EditProfile: View {
                     .frame(width: 80, height: 80)
                     .clipShape(Circle())
             }
-            Button {
-                // TODO: Change profile photo (upload API)
-            } label: {
-                Text(" profile photo")
-                    .foregroundStyle(.red)
-                    .font(.subheadline)
-            }
         }
         .padding(.top, 8)
     }
@@ -108,6 +154,7 @@ struct EditProfile: View {
             fullName = user.fullName
             phoneNumber = user.phone ?? ""
             email = user.email
+            profileImageFilename = ProfileViewModel.profileImageFilename(for: user.profileImage)
         } else if !userId.isEmpty {
             Task {
                 await viewModel.fetchProfile(userId: userId)

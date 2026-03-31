@@ -42,7 +42,7 @@ struct ProfileView: View {
                 NavigationLink(destination: EditProfile(viewModel: viewModel)) {
                     AccountMenuItem(
                         icon: "person.text.rectangle",
-                        title: "My Details"
+                        title: "Edit Profile"
                     )
                 }
                 

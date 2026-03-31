@@ -14,6 +14,10 @@ struct DetailsPageView: View {
     @AppStorage("userId") private var userId: String = ""
     @State private var showToast = false
     @State private var toastMessage = ""
+    @State private var showBuyNowCheckout = false
+    @State private var showBuyNowOrderAccepted = false
+    @State private var buyNowCheckoutTotal = 0
+    @State private var buyNowPayload: BuyNowProductPayload?
 
     let productId: String
     let wishlistVM: WishlistViewModel
@@ -352,18 +356,56 @@ struct DetailsPageView: View {
         .navigationBarBackButtonHidden(true)
         .safeAreaInset(edge: .bottom) {
             Button {
-               
+                guard !userId.isEmpty else {
+                    toastMessage = "Please sign in to continue"
+                    withAnimation {
+                        showToast = true
+                    }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                        withAnimation {
+                            showToast = false
+                        }
+                    }
+                    return
+                }
+                guard let product = viewModel.product else { return }
+                buyNowCheckoutTotal = max(1, product.price * viewModel.quantity)
+                buyNowPayload = BuyNowProductPayload(
+                    productId: product.id,
+                    quantity: viewModel.quantity
+                )
+                showBuyNowCheckout = true
             } label: {
                 Text("Buy Now")
+                    .font(.headline)
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color(red: 0.7, green: 0.2, blue: 0.2))
+                    .background(Color.custom)
                     .cornerRadius(15)
                     .padding()
             }
             .background(Color.white)
             .shadow(radius: 5)
+        }
+        .sheet(isPresented: $showBuyNowCheckout) {
+            CheckoutSheet(
+                totalPrice: buyNowCheckoutTotal,
+                isPresented: $showBuyNowCheckout,
+                isBuyNow: true,
+                buyNowProduct: buyNowPayload,
+                onPaymentVerified: {
+                    showBuyNowOrderAccepted = true
+                }
+            )
+            .presentationDetents([.height(430)])
+            .presentationDragIndicator(.hidden)
+            .presentationCornerRadius(30)
+        }
+        .fullScreenCover(isPresented: $showBuyNowOrderAccepted) {
+            OrderAcceptView {
+                showBuyNowOrderAccepted = false
+            }
         }
         .overlay(alignment : .top) {
             if showToast {

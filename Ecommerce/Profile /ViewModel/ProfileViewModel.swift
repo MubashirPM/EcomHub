@@ -16,6 +16,7 @@ class ProfileViewModel: ObservableObject {
 
     @Published var user: ProfileUser?
     @Published var isLoading = false
+    @Published var isSaving = false
     @Published var errorMessage: String?
 
     func fetchProfile(userId: String) async {
@@ -73,5 +74,77 @@ class ProfileViewModel: ObservableObject {
         let path = trimmed.hasPrefix("/") ? String(trimmed.dropFirst()) : trimmed
         let base = AppConfig.profileImageBaseURL.hasSuffix("/") ? AppConfig.profileImageBaseURL : AppConfig.profileImageBaseURL + "/"
         return URL(string: base + path)
+    }
+
+    /// Last path segment for API `profileImage` (e.g. `photo.jpg`), not a full URL.
+    static func profileImageFilename(for pathOrURL: String?) -> String {
+        guard let raw = pathOrURL?.trimmingCharacters(in: .whitespacesAndNewlines), !raw.isEmpty else {
+            return ""
+        }
+        if let url = URL(string: raw), url.scheme != nil {
+            return url.lastPathComponent
+        }
+        return (raw as NSString).lastPathComponent
+    }
+
+    /// `POST /profile/edit/{userId}` with JSON body `fullName`, `phone`, `profileImage`.
+    func updateProfile(userId: String, fullName: String, phone: String, profileImageFilename: String) async -> Bool {
+        guard !userId.isEmpty else {
+            errorMessage = "Please sign in."
+            return false
+        }
+        let trimmedName = fullName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedName.isEmpty else {
+            errorMessage = "Please enter your name."
+            return false
+        }
+        guard let url = URL(string: AppConfig.baseURL + EndPoints.editProfile(userId: userId)) else {
+            errorMessage = "Invalid URL"
+            return false
+        }
+
+        isSaving = true
+        errorMessage = nil
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        let body = ProfileEditRequest(
+            fullName: trimmedName,
+            phone: phone.trimmingCharacters(in: .whitespacesAndNewlines),
+            profileImage: profileImageFilename.trimmingCharacters(in: .whitespacesAndNewlines)
+        )
+        do {
+            request.httpBody = try JSONEncoder().encode(body)
+            let (data, response) = try await URLSession.shared.data(for: request)
+            guard let http = response as? HTTPURLResponse else {
+                errorMessage = "Invalid response"
+                isSaving = false
+                return false
+            }
+            if (200...299).contains(http.statusCode) {
+                let decoder = JSONDecoder()
+                decoder.keyDecodingStrategy = .convertFromSnakeCase
+                if let updated = try? decoder.decode(ProfileResponse.self, from: data) {
+                    user = updated.user
+                    saveProfileImageURLToUserDefaults(for: updated.user)
+                } else {
+                    await fetchProfile(userId: userId)
+                }
+                isSaving = false
+                return true
+            }
+            if let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+               let msg = obj["message"] as? String, !msg.isEmpty {
+                errorMessage = msg
+            } else {
+                errorMessage = "Could not update profile."
+            }
+        } catch {
+            errorMessage = "Could not update profile."
+        }
+
+        isSaving = false
+        return false
     }
 }

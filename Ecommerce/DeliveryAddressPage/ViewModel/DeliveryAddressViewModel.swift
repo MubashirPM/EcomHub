@@ -12,6 +12,7 @@ class DeliveryAddressViewModel: ObservableObject {
     @Published var addresses: [AddressItem] = []
     @Published var isLoading = false
     @Published var errorMessage: String?
+    @Published var deletingAddressId: String?
 
     func fetchAddresses(userId: String) async {
         guard !userId.isEmpty else {
@@ -39,5 +40,50 @@ class DeliveryAddressViewModel: ObservableObject {
         }
 
         isLoading = false
+    }
+
+    /// Removes one address via `POST /address/delete/:userId` (body includes address id).
+    func deleteAddress(userId: String, addressId: String) async {
+        guard !userId.isEmpty, !addressId.isEmpty else { return }
+        guard let url = URL(string: AppConfig.baseURL + EndPoints.deleteAddress(userId: userId)) else {
+            errorMessage = "Invalid URL"
+            return
+        }
+
+        deletingAddressId = addressId
+        errorMessage = nil
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        let body: [String: Any] = [
+            "addressId": addressId,
+            "_id": addressId
+        ]
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+            guard let httpResponse = response as? HTTPURLResponse else {
+                errorMessage = "Invalid response"
+                deletingAddressId = nil
+                return
+            }
+            if (200...299).contains(httpResponse.statusCode) {
+                addresses.removeAll { $0.id == addressId }
+                if UserDefaults.standard.string(forKey: "selectedAddressId") == addressId {
+                    UserDefaults.standard.set("", forKey: "selectedAddressId")
+                }
+            } else if let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                      let msg = obj["message"] as? String, !msg.isEmpty {
+                errorMessage = msg
+            } else {
+                errorMessage = "Could not delete address."
+            }
+        } catch {
+            errorMessage = "Could not delete address."
+        }
+
+        deletingAddressId = nil
     }
 }

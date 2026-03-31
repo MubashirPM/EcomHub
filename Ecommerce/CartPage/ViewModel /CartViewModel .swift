@@ -99,6 +99,22 @@ class CartViewModel: ObservableObject {
         }
     }
     
+    /// After Razorpay + `/payment/verify` succeeds for a **cart** checkout: empty the UI and
+    /// remove each line from the server so the cart stays empty when the user returns.
+    @MainActor
+    func clearCartAfterSuccessfulPayment(userId: String) async {
+        guard !userId.isEmpty else {
+            cartItems = []
+            return
+        }
+        let snapshot = cartItems
+        cartItems = []
+        for item in snapshot {
+            _ = await removeFromCartAPI(userId: userId, productId: item.productId.id)
+        }
+        await fetchCart(userId: userId)
+    }
+
     // MARK: - Fetch Cart API
     func fetchCart(userId: String) async {
         

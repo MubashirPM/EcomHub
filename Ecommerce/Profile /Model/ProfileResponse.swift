@@ -11,6 +11,13 @@ struct ProfileResponse: Codable {
     let user: ProfileUser
 }
 
+/// Body for `POST /profile/edit/{userId}` (`Content-Type: application/json`).
+struct ProfileEditRequest: Encodable {
+    let fullName: String
+    let phone: String
+    let profileImage: String
+}
+
 struct ProfileUser: Codable, Equatable {
     let id: String
     let fullName: String

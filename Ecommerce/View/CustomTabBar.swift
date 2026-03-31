@@ -20,7 +20,7 @@ struct CustomTabBar: View {
             }
             .tabItem {
                 Image(systemName: "square.grid.2x2")
-                Text("Shop")
+                Text("Home")
             }
             .tag(0)
 

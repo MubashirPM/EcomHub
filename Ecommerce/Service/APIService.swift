@@ -68,6 +68,10 @@ enum EndPoints {
         "/profile/\(userId)"
     }
 
+    static func editProfile(userId: String) -> String {
+        "/profile/edit/\(userId)"
+    }
+
     static func getAddress(userId: String) -> String {
         "/address/\(userId)"
     }
@@ -75,5 +79,19 @@ enum EndPoints {
     static func addAddress(userId: String) -> String {
         "/address/add/\(userId)"
     }
+
+    static func deleteAddress(userId: String) -> String {
+        "/address/delete/\(userId)"
+    }
+
+    // Payment
+    static let createPaymentOrder = "/payment/create-order"
+    static let verifyPayment = "/payment/verify"
+
+    // Orders
+    static let userOrders = "/orders"
+    static let orderDetails = "/order/details"
+    static let orderCancel = "/order/cancel"
+    static let orderReturn = "/order/return"
 }
 
