@@ -19,6 +19,11 @@ class ProfileViewModel: ObservableObject {
     @Published var isSaving = false
     @Published var errorMessage: String?
 
+    func clearUserOnLogout() {
+        user = nil
+        errorMessage = nil
+    }
+
     func fetchProfile(userId: String) async {
         guard !userId.isEmpty else {
             user = nil

@@ -6,11 +6,13 @@
 //
 
 import SwiftUI
+import GoogleSignIn
 
 struct ProfileView: View {
 
     @AppStorage("userId") private var userId: String = ""
     @EnvironmentObject private var viewModel: ProfileViewModel
+    @EnvironmentObject private var authViewModel: AuthViewModel
     
     var body: some View {
         VStack(spacing: 0) {
@@ -81,8 +83,10 @@ struct ProfileView: View {
             
             Spacer()
             
-            NavigationLink {
-                SignInView()
+            Button {
+                GIDSignIn.sharedInstance.signOut()
+                viewModel.clearUserOnLogout()
+                authViewModel.logout()
             } label: {
                 Text("Log Out")
                     .font(.headline)

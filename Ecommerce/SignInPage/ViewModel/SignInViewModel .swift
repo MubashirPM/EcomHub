@@ -26,12 +26,7 @@ class SignInViewModel: ObservableObject {
     
     // Email Login
     func signIn() async {
-        
-        print("🚨 signIn() STARTED")
-            print("Using email:", email)
-            print("Using password:", password)
-        
-       
+
         guard !email.isEmpty else {
             errorMessage = "Please enter your email"
             return
@@ -41,11 +36,10 @@ class SignInViewModel: ObservableObject {
             return
         }
         guard !password.isEmpty else {
-            errorMessage = "Please Enter a valid email address"
+            errorMessage = "Please enter your password."
             return
         }
-        
-        print("✅ Guard passed – building URL")
+
         errorMessage = nil
         isLoading = true
         
@@ -80,15 +74,20 @@ class SignInViewModel: ObservableObject {
                 isLoading = false
                 return
             }
-            print("Status Code:", httpResponse.statusCode)
-            print("Raw Response:", String(data: data, encoding: .utf8) ?? "No data")
-            
             if httpResponse.statusCode == 200 {
                 let decoded = try JSONDecoder().decode(LoginResponse.self, from: data)
                 
                 if decoded.success {
                     self.user = decoded.user
-                    
+
+                    if let access = decoded.accessToken, !access.isEmpty {
+                        if let refresh = decoded.refreshToken, !refresh.isEmpty {
+                            AuthTokenStore.save(accessToken: access, refreshToken: refresh)
+                        } else {
+                            AuthTokenStore.saveAccessToken(access)
+                        }
+                    }
+
                     if let email = decoded.user?.email {
                            UserDefaults.standard.set(email, forKey: "userEmail")
                            print("Saved Email:", email)
@@ -96,13 +95,9 @@ class SignInViewModel: ObservableObject {
                     
                     if let id = decoded.user?.id {
                           UserDefaults.standard.set(id, forKey: "userId")
-                          print("Saved UserId:", id)
                       }
-                    
-                    print("Login success")
-                    print("isLoggedIn before:", self.isLoggedIn)
+
                     self.isLoggedIn = true
-                    print("isLoggedIn after:", self.isLoggedIn)
                 } else {
                     switch decoded.code {
                            
@@ -201,6 +196,7 @@ class SignInViewModel: ObservableObject {
             }
 
             if httpResponse.statusCode == 200 {
+                extractAndSaveTokensIfPresent(from: data)
                 let extracted = extractUserIdAndEmailFromGoogleResponse(data: data)
                 if let userId = extracted.userId, !userId.isEmpty {
                     UserDefaults.standard.set(userId, forKey: "userId")
@@ -220,6 +216,27 @@ class SignInViewModel: ObservableObject {
             errorMessage = "Unable to sign in with Google."
         }
         isLoading = false
+    }
+
+    private func extractAndSaveTokensIfPresent(from data: Data) {
+        guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return }
+        var access = (json["accessToken"] as? String) ?? (json["access_token"] as? String)
+        var refresh = (json["refreshToken"] as? String) ?? (json["refresh_token"] as? String)
+        if access == nil || refresh == nil, let dataDict = json["data"] as? [String: Any] {
+            if access == nil {
+                access = (dataDict["accessToken"] as? String) ?? (dataDict["access_token"] as? String)
+            }
+            if refresh == nil {
+                refresh = (dataDict["refreshToken"] as? String) ?? (dataDict["refresh_token"] as? String)
+            }
+        }
+        if let a = access, !a.isEmpty {
+            if let r = refresh, !r.isEmpty {
+                AuthTokenStore.save(accessToken: a, refreshToken: r)
+            } else {
+                AuthTokenStore.saveAccessToken(a)
+            }
+        }
     }
 
     /// Tries decoded AuthResponse first, then falls back to raw JSON for common backend shapes.

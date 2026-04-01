@@ -3,16 +3,16 @@ import SwiftUI
 import Combine
 
 class HomeViewModel: ObservableObject {
-    
+
     @Published var searchText: String = ""
-    
+
     @Published var trending: [HomeProduct] = []
     @Published var newArrivals: [HomeProduct] = []
     @Published var featured: [HomeProduct] = []
-    
+
     @Published var isLoading = false
     @Published var errorMessage: String?
-    
+
     var filteredNewArrivals: [HomeProduct] {
         if searchText.isEmpty { return newArrivals }
         return newArrivals.filter { $0.productName.lowercased().contains(searchText.lowercased()) }
@@ -27,63 +27,52 @@ class HomeViewModel: ObservableObject {
         if searchText.isEmpty { return featured }
         return featured.filter { $0.productName.lowercased().contains(searchText.lowercased()) }
     }
-    
+
     func fetchHomeData() {
-        
+        Task {
+            await fetchHomeDataAsync()
+        }
+    }
+
+    private func fetchHomeDataAsync() async {
         let urlString = AppConfig.baseURL + EndPoints.Home
-        
         guard let url = URL(string: urlString) else {
-            print("Invalid URL")
+            await MainActor.run { errorMessage = "Invalid URL" }
             return
         }
-        
-        print("Calling API:", urlString)
-        
-        isLoading = true
-        errorMessage = nil
-        
-        URLSession.shared.dataTask(with: url) { data, response, error in
-            
-            DispatchQueue.main.async {
-                self.isLoading = false
-            }
-            
-            if let httpResponse = response as? HTTPURLResponse {
-                print("Status Code:", httpResponse.statusCode)
-            }
-            
-            if let error = error {
-                DispatchQueue.main.async {
-                    self.errorMessage = error.localizedDescription
+
+        await MainActor.run {
+            isLoading = true
+            errorMessage = nil
+        }
+
+        do {
+            let (data, http) = try await AuthenticatedAPIClient.get(url: url)
+            guard (200 ... 299).contains(http.statusCode) else {
+                await MainActor.run {
+                    errorMessage = "Could not load home."
+                    isLoading = false
                 }
-                print("Network Error:", error)
                 return
             }
-            
-            guard let data = data else {
-                print("No data received")
-                return
+
+            let decodedResponse = try JSONDecoder().decode(HomeResponse.self, from: data)
+            await MainActor.run {
+                trending = decodedResponse.data.trending
+                newArrivals = decodedResponse.data.newArrivals
+                featured = decodedResponse.data.featuredCollection
+                isLoading = false
             }
-            
-            print("RAW RESPONSE:")
-            print(String(data: data, encoding: .utf8) ?? "No response string")
-            
-            do {
-                let decodedResponse = try JSONDecoder().decode(HomeResponse.self, from: data)
-                
-                DispatchQueue.main.async {
-                    self.trending = decodedResponse.data.trending
-                    self.newArrivals = decodedResponse.data.newArrivals
-                    self.featured = decodedResponse.data.featuredCollection
-                }
-                
-            } catch {
-                DispatchQueue.main.async {
-                    self.errorMessage = error.localizedDescription
-                }
-                print("Decoding Error:", error)
+        } catch AuthenticatedAPIClient.APIError.unauthorized {
+            await MainActor.run {
+                errorMessage = AuthenticatedAPIClient.APIError.unauthorized.errorDescription
+                isLoading = false
             }
-            
-        }.resume()
+        } catch {
+            await MainActor.run {
+                errorMessage = error.localizedDescription
+                isLoading = false
+            }
+        }
     }
 }

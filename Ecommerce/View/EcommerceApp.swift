@@ -10,9 +10,13 @@ import SwiftUI
 
 @main
 struct EcommerceApp: App {
+
+    @StateObject private var authViewModel = AuthViewModel()
+
     var body: some Scene {
         WindowGroup {
-            WelcomePage()
+            AppAuthRootView()
+                .environmentObject(authViewModel)
         }
     }
 }

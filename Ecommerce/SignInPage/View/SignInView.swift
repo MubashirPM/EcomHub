@@ -9,7 +9,8 @@
 import SwiftUI
 
 struct SignInView: View {
-    
+
+    @EnvironmentObject private var authViewModel: AuthViewModel
     @StateObject private var viewModel = SignInViewModel()
     @State private var goToSignUp = false
     var body: some View {
@@ -128,12 +129,10 @@ struct SignInView: View {
                 }
             }
                         
-            .navigationDestination(
-                isPresented: $viewModel.isLoggedIn
-            ) {
-                CustomTabBar()
-                    .navigationBarBackButtonHidden(true)
-                    .toolbar(.hidden, for: .navigationBar)
+            .onChange(of: viewModel.isLoggedIn) { _, isSignedIn in
+                if isSignedIn {
+                    authViewModel.markLoggedInAfterLogin()
+                }
             }
             .navigationDestination(isPresented: $goToSignUp) {
                 SignUpView()

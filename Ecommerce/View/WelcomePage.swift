@@ -96,6 +96,7 @@ struct WelcomePage: View {
 
 #Preview {
     WelcomePage()
+        .environmentObject(AuthViewModel())
 }
 
 struct FeatureRow: View {
